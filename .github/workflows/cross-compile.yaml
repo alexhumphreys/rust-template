@@ -15,7 +15,7 @@ jobs:
         services:
           - api
           - website
-    name: Build
+    name: Build and test
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v2
@@ -26,6 +26,4 @@ jobs:
       - run: |
           cd ${{ matrix.services }}
           cargo test
-      - run: |
-          cd ${{ matrix.services }}
           cargo build --release
