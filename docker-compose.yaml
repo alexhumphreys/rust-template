@@ -13,6 +13,12 @@ services:
       - "3000:3000"
     depends_on:
       - db
+  website:
+    build: website
+    ports:
+      - "8000:8000"
+    depends_on:
+      - api
 
 volumes:
   db-data:
