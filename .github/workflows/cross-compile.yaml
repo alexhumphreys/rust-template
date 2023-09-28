@@ -6,9 +6,18 @@ on: [push, pull_request]
 name: Cross-compile
 
 jobs:
+  matrix:
+    runners:
+      - ubuntu-latest
+      - macos-latest
   build:
+    strategy:
+      matrix:
+        os:
+          - ubuntu-latest
+          - macos-latest
     name: Build
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         services:
