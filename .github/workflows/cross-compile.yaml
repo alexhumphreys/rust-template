@@ -12,13 +12,11 @@ jobs:
         os:
           - ubuntu-latest
           - macos-latest
-    name: Build
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
         services:
           - api
           - website
+    name: Build
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v2
       - uses: actions-rs/toolchain@v1
