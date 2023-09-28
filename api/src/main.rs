@@ -7,10 +7,19 @@
 use axum::{response::Html, routing::get, Router};
 use std::net::SocketAddr;
 
+use tower_http::{self, trace, trace::TraceLayer};
+use tracing::Level;
+
 #[tokio::main]
 async fn main() {
+    tracing_subscriber::fmt().with_target(false).json().init();
+
     // build our application with a route
-    let app = Router::new().route("/", get(handler));
+    let app = Router::new().route("/", get(handler)).layer(
+        TraceLayer::new_for_http()
+            .make_span_with(trace::DefaultMakeSpan::new().level(Level::INFO))
+            .on_response(trace::DefaultOnResponse::new().level(Level::INFO)),
+    );
 
     // run it
     let addr = SocketAddr::from(([0, 0, 0, 0], 3000));
