@@ -5,6 +5,7 @@
 //! ```
 
 use axum::{response::Html, routing::get, Router};
+use axum_otel_metrics::HttpMetricsLayerBuilder;
 use dotenvy;
 use std::net::SocketAddr;
 
@@ -48,10 +49,14 @@ async fn main() {
 
     setup_logging();
 
+    let metrics = HttpMetricsLayerBuilder::new().build();
+
     // build our application with a route
     let app = Router::new()
+        .merge(metrics.routes()) // TODO other port?
         .route("/", get(handler))
-        .layer(create_trace_layer());
+        .layer(create_trace_layer())
+        .layer(metrics);
 
     // run it
     let addr = SocketAddr::from(([0, 0, 0, 0], 3000));
