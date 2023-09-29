@@ -3,13 +3,23 @@
 
 on: [push, pull_request]
 
-name: check fmt
+name: Check formatting
 
 jobs:
-  cargo-fmt-check:
-    runs-on: ubuntu-latest
-    container: rust:slim
+  fmt:
+    strategy:
+      matrix:
+        os:
+          - ubuntu-latest
+          - macos-latest
+        services:
+          - api
+          - website
+    name: cargo fmt
+    runs-on: ${{ matrix.os }}
     steps:
-      - uses: olix0r/cargo-action-fmt/setup@v2
-      - uses: actions/checkout@v2
-      - run: cargo check -q --message-format=json | cargo-action-fmt
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - run: |
+          cd ${{ matrix.services }}
+          cargo fmt --check
