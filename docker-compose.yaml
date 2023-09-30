@@ -1,7 +1,7 @@
 services:
   jaeger:
-    image: jaegertracing/all-in-one:latest
-    environment: 
+    image: jaegertracing/all-in-one:1.49
+    environment:
       COLLECTOR_ZIPKIN_HOST_PORT: "9411"
       COLLECTOR_OTLP_ENABLED: "true"
     ports:
@@ -33,8 +33,9 @@ services:
       - jaeger
       - db
     environment:
+      OTEL_SERVICE_NAME: api-service
       OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: http://jaeger:4317
-      RUST_LOG=warn,axum_tracing_opentelemetry: info,otel=debug
+      RUST_LOG: info,axum_tracing_opentelemetry=info,otel=debug
 
   website:
     build: website
@@ -42,6 +43,10 @@ services:
       - "8000:8000"
     depends_on:
       - api
+    environment:
+      OTEL_SERVICE_NAME: api-service
+      OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: http://jaeger:4317
+      RUST_LOG=info,axum_tracing_opentelemetry: info,otel=debug
 
 volumes:
   db-data:

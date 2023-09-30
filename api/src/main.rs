@@ -1,9 +1,4 @@
-//! Run with
-//!
-//! ```not_rust
-//! cargo run -p example-hello-world
-//! ```
-
+use api_server::init_subscribers_custom;
 use axum::{response::Html, routing::get, Router};
 use axum_otel_metrics::HttpMetricsLayerBuilder;
 use axum_tracing_opentelemetry::middleware::{OtelAxumLayer, OtelInResponseLayer};
@@ -14,7 +9,8 @@ use std::net::SocketAddr;
 async fn main() {
     dotenvy::dotenv().ok();
 
-    init_tracing_opentelemetry::tracing_subscriber_ext::init_subscribers().ok();
+    //init_tracing_opentelemetry::tracing_subscriber_ext::init_subscribers().ok();
+    init_subscribers_custom().ok();
 
     let metrics = HttpMetricsLayerBuilder::new().build();
 
@@ -31,6 +27,7 @@ async fn main() {
     // run it
     let addr = SocketAddr::from(([0, 0, 0, 0], 3000));
     println!("listening on {}", addr);
+    tracing::debug!("listening on {}", addr);
     axum::Server::bind(&addr)
         .serve(app.into_make_service())
         .await
