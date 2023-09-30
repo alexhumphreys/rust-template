@@ -20,7 +20,7 @@ where
                 .pretty()
                 .with_line_number(true)
                 .with_thread_names(true)
-                .with_span_events(FmtSpan::CLOSE)
+                .with_span_events(FmtSpan::CLOSE | FmtSpan::NEW)
                 // .with_span_events(FmtSpan::NEW | FmtSpan::CLOSE)
                 .with_timer(tracing_subscriber::fmt::time::uptime()),
         )
