@@ -18,10 +18,10 @@ jobs:
         with:
           compose-file: "./docker-compose.yaml"
 
-      - run: |
-          docker ps -a
-          nc -vz 127.0.0.1 3000
-      - name: Run local k6 test
-        uses: grafana/k6-action@v0.2.0
-        with:
-          filename: load-test.js
+      - name: Install k6
+        run: |
+          curl https://github.com/grafana/k6/releases/download/v0.44.0/k6-v0.44.0-linux-amd64.tar.gz -L | tar xvz --strip-components 1
+
+      - name: Run tests
+        run: |
+          ./k6 run load-test.js
