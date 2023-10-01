@@ -1,6 +1,5 @@
 mod handler;
 mod model;
-mod route;
 mod schema;
 
 use api_server::init_subscribers_custom;
