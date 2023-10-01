@@ -20,7 +20,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
-      - run: |
+      - env:
+          SQLX_OFFLINE: "true"
+        run: |
           cd ${{ matrix.services }}
           cargo test
           cargo build --release
