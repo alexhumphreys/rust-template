@@ -1,15 +1,13 @@
 use std::sync::Arc;
 
+use crate::{model::ClientModel, schema::FilterOptions, AppState};
 use axum::{
     extract::{Query, State},
     http::StatusCode,
     response::IntoResponse,
     Json,
 };
-
-use crate::{model::ClientModel, schema::FilterOptions, AppState};
-
-use tracing;
+use tracing::{self, Instrument};
 
 fn make_otel_span(db_operation: &str) -> tracing::Span {
     // NO parsing of statement to extract information, not recommended by Specification and time-consuming
@@ -26,6 +24,7 @@ fn make_otel_span(db_operation: &str) -> tracing::Span {
     )
 }
 
+#[tracing::instrument]
 pub async fn get_client_handler(
     opts: Option<Query<FilterOptions>>,
     State(data): State<Arc<AppState>>,
@@ -42,6 +41,7 @@ pub async fn get_client_handler(
         offset as i32
     )
     .fetch_all(&data.db)
+    .instrument(make_otel_span("SELECT"))
     .await;
 
     if query_result.is_err() {

@@ -16,6 +16,7 @@ use sqlx::{postgres::PgPoolOptions, Pool, Postgres};
 use std::net::SocketAddr;
 use std::sync::Arc;
 
+#[derive(Debug)]
 pub struct AppState {
     db: Pool<Postgres>,
 }
