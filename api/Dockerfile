@@ -1,6 +1,7 @@
 # Build Stage
 FROM rust:1.70.0 as builder
 
+ARG SQLX_OFFLINE=true
 RUN USER=root cargo new --bin api-server
 WORKDIR ./api-server
 COPY ./Cargo.toml ./Cargo.toml
@@ -14,11 +15,11 @@ RUN ls ./target/release/deps/
 RUN rm ./target/release/deps/api_server*
 RUN cargo build --release
 
-FROM debian:12-slim
+FROM debian:11-slim
 ARG APP=/usr/src/app
 
 RUN apt-get update \
-    && apt-get install -y ca-certificates tzdata \
+    && apt-get install -y ca-certificates tzdata openssl libssl-dev \
     && rm -rf /var/lib/apt/lists/*
 
 EXPOSE 3000

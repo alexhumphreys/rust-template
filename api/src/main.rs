@@ -1,3 +1,8 @@
+mod handler;
+mod model;
+mod route;
+mod schema;
+
 use api_server::init_subscribers_custom;
 use axum::{
     response::{Html, IntoResponse},
@@ -47,12 +52,13 @@ async fn main() {
         .merge(metrics.routes()) // TODO other port?
         .route("/", get(handler))
         .route("/api/healthz", get(health_checker_handler))
+        .route("/api/clients", get(handler::get_client_handler))
+        .with_state(app_state)
         // include trace context as header into the response
         .layer(OtelInResponseLayer::default())
         //start OpenTelemetry trace on incoming request
         .layer(OtelAxumLayer::default())
-        .layer(metrics)
-        .with_state(app_state);
+        .layer(metrics);
 
     // run it
     let addr = SocketAddr::from(([0, 0, 0, 0], 3000));

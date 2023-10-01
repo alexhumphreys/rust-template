@@ -38,6 +38,7 @@ services:
       OTEL_SERVICE_NAME: api-service
       OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: http://jaeger:4317
       RUST_LOG: info,axum_tracing_opentelemetry=info,otel=debug
+      DATABASE_URL: postgres://test-user:123@db:5432/test-db
 
   website:
     build: website
