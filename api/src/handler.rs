@@ -26,11 +26,10 @@ fn make_otel_span(db_operation: &str, db_statement: &str) -> tracing::Span {
     )
 }
 
-#[tracing::instrument]
-pub async fn get_client_handler(
+pub async fn get_client_list(
     opts: Option<Query<FilterOptions>>,
     State(data): State<Arc<AppState>>,
-) -> Result<impl IntoResponse, (StatusCode, Json<serde_json::Value>)> {
+) -> Result<Vec<ClientModel>, String> {
     let Query(opts) = opts.unwrap_or_default();
 
     let limit = opts.limit.unwrap_or(10);
@@ -49,20 +48,36 @@ pub async fn get_client_handler(
         .instrument(make_otel_span("SELECT", sql))
         .await;
 
-    if query_result.is_err() {
-        let error_response = serde_json::json!({
-            "status": "fail",
-            "message": "Something bad happened while fetching all client items",
-        });
-        return Err((StatusCode::INTERNAL_SERVER_ERROR, Json(error_response)));
+    match query_result {
+        Ok(clients) => return Ok(clients),
+        Err(e) => {
+            let msg = "Something bad happened while fetching all client items";
+            tracing::error!("{}: {}", msg, e);
+            Err(msg.to_string())
+        }
     }
+}
 
-    let clients = query_result.unwrap();
-
-    let json_response = serde_json::json!({
-        "status": "success",
-        "results": clients.len(),
-        "clients": clients
-    });
-    Ok(Json(json_response))
+#[tracing::instrument]
+pub async fn get_client_handler(
+    opts: Option<Query<FilterOptions>>,
+    State(data): State<Arc<AppState>>,
+) -> Result<impl IntoResponse, (StatusCode, Json<serde_json::Value>)> {
+    match get_client_list(opts, State(data)).await {
+        Ok(clients) => {
+            let json_response = serde_json::json!({
+                "status": "success",
+                "results": clients.len(),
+                "clients": clients
+            });
+            Ok(Json(json_response))
+        }
+        Err(e) => {
+            let error_response = serde_json::json!({
+                "status": "fail",
+                "message": e,
+            });
+            Err((StatusCode::INTERNAL_SERVER_ERROR, Json(error_response)))
+        }
+    }
 }
