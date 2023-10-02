@@ -7,18 +7,20 @@ use axum::{
     response::IntoResponse,
     Json,
 };
+use sqlx::Execute;
 use tracing::{self, Instrument};
 
-fn make_otel_span(db_operation: &str) -> tracing::Span {
+fn make_otel_span(db_operation: &str, db_statement: &str) -> tracing::Span {
     // NO parsing of statement to extract information, not recommended by Specification and time-consuming
     // warning: providing the statement could leek information
     tracing::trace_span!(
         target: tracing_opentelemetry_instrumentation_sdk::TRACING_TARGET,
         "DB request",
+        service.name = "api-postgres",
         db.system = "postgresql",
-        // db.statement = stmt,
+        db.statement = db_statement, // TODO bad idea?
         db.operation = db_operation,
-        otel.name = db_operation, // should be <db.operation> <db.name>.<db.sql.table>,
+        otel.name = "db.operation", // should be <db.operation> <db.name>.<db.sql.table>,
         otel.kind = "CLIENT",
         otel.status_code = tracing::field::Empty,
     )
@@ -34,15 +36,18 @@ pub async fn get_client_handler(
     let limit = opts.limit.unwrap_or(10);
     let offset = (opts.page.unwrap_or(1) - 1) * limit;
 
-    let query_result = sqlx::query_as!(
+    let query = sqlx::query_as!(
         ClientModel,
         "SELECT * FROM clients ORDER by id LIMIT $1 OFFSET $2",
         limit as i32,
         offset as i32
-    )
-    .fetch_all(&data.db)
-    .instrument(make_otel_span("SELECT"))
-    .await;
+    );
+
+    let sql = query.sql().clone();
+    let query_result = query
+        .fetch_all(&data.db)
+        .instrument(make_otel_span("SELECT", sql))
+        .await;
 
     if query_result.is_err() {
         let error_response = serde_json::json!({
