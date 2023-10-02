@@ -6,6 +6,25 @@ on: [push, pull_request]
 name: Cross-compile
 
 jobs:
+  test:
+    strategy:
+      matrix:
+        os:
+          - ubuntu-latest
+        services:
+          - api
+          - website
+    name: test
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - env:
+          SQLX_OFFLINE: "true"
+        run: |
+          cd ${{ matrix.services }}
+          cargo test
+
   build:
     strategy:
       matrix:
