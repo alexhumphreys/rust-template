@@ -11,6 +11,8 @@ use axum::{
 use axum_otel_metrics::HttpMetricsLayerBuilder;
 use axum_tracing_opentelemetry::middleware::{OtelAxumLayer, OtelInResponseLayer};
 use dotenvy;
+use oasgen::{openapi, OaSchema, Server};
+use serde::{Deserialize, Serialize};
 use sqlx::{postgres::PgPoolOptions, Pool, Postgres};
 use std::net::SocketAddr;
 use std::sync::Arc;
@@ -18,6 +20,23 @@ use std::sync::Arc;
 #[derive(Debug)]
 pub struct AppState {
     db: Pool<Postgres>,
+}
+
+#[derive(OaSchema, Deserialize)]
+pub struct SendCode {
+    pub mobile: String,
+}
+
+#[derive(Serialize, OaSchema, Debug)]
+pub struct SendCodeResponse {
+    pub found_account: bool,
+}
+
+#[openapi]
+async fn send_code(_body: Json<SendCode>) -> Json<SendCodeResponse> {
+    Json(SendCodeResponse {
+        found_account: false,
+    })
 }
 
 #[tokio::main]
@@ -47,7 +66,11 @@ async fn main() {
 
     let app_state = Arc::new(AppState { db: pool.clone() });
 
-    // build our application with a route
+    let server = Server::axum()
+        .post("/send-code", send_code)
+        .write_and_exit_if_env_var_set("openapi.yaml") // set OASGEN_WRITE_SPEC=1
+        .freeze();
+
     let app = Router::new()
         .merge(metrics.routes()) // TODO other port?
         .route("/", get(handler))
@@ -58,7 +81,8 @@ async fn main() {
         .layer(OtelInResponseLayer::default())
         //start OpenTelemetry trace on incoming request
         .layer(OtelAxumLayer::default())
-        .layer(metrics);
+        .layer(metrics)
+        .merge(server.into_router());
 
     // run it
     let addr = SocketAddr::from(([0, 0, 0, 0], 3000));

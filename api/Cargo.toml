@@ -28,6 +28,7 @@ chrono = { version = "0.4.31", features = ["serde"] }
 dotenv = "0.15.0"
 uuid = { version = "1.4.1", features = ["serde", "v4"] }
 sqlx = { version = "0.7.2", features = ["runtime-async-std-native-tls", "postgres", "chrono", "uuid"] }
+oasgen = { version = "0.13.0", features = ["axum"] }
 
 [features]
 otlp-over-http = ["opentelemetry-otlp/reqwest-client", "opentelemetry-otlp/reqwest-rustls", "opentelemetry-otlp/http-proto", "opentelemetry-otlp/tls"]
