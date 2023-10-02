@@ -6,17 +6,23 @@
 
 use askama::Template;
 use axum::{
+    body::{Body, Bytes},
     extract,
+    extract::State,
     http::StatusCode,
-    response::{Html, IntoResponse, Response},
+    response::{Html, IntoResponse, Json, Response},
     routing::get,
     Router,
 };
+use dotenvy;
+use reqwest;
 use std::net::SocketAddr;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
 #[tokio::main]
 async fn main() {
+    dotenvy::dotenv().ok();
+
     tracing_subscriber::registry()
         .with(
             tracing_subscriber::EnvFilter::try_from_default_env()
@@ -26,11 +32,13 @@ async fn main() {
         .init();
 
     // build our application with some routes
-    let app = Router::new().route("/greet/:name", get(greet));
+    let app = Router::new()
+        .route("/greet/:name", get(greet))
+        .route("/hit/api", get(proxy_via_reqwest));
 
     // run it
     let addr = SocketAddr::from(([0, 0, 0, 0], 8000));
-    tracing::debug!("listening on {}", addr);
+    tracing::info!("listening on {}", addr);
     axum::Server::bind(&addr)
         .serve(app.into_make_service())
         .await
@@ -64,6 +72,19 @@ where
                 .into_response(),
         }
     }
+}
+
+async fn proxy_via_reqwest() -> impl IntoResponse {
+    let api_base_url = std::env::var("API_BASE_URL").expect("Define API_BASE_URL");
+    let reqwest_response = match reqwest::get(format!("{}/api/clients", api_base_url)).await {
+        Ok(res) => res,
+        Err(err) => {
+            tracing::error!(%err, "request failed");
+            return (axum::http::StatusCode::INTERNAL_SERVER_ERROR, "foo").into_response();
+        }
+    };
+
+    Json(reqwest_response.text().await.unwrap()).into_response()
 }
 
 #[cfg(test)]

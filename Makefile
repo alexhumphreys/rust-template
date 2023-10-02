@@ -6,11 +6,17 @@ db-connect:
 	pgcli $(DATABASE_URL)
 
 db-migrate:
-	npx pg-migrations apply --directory migrations --database $(DATABASE_URL)
+	cd api/ && cargo sqlx migrate run --database-url $(DATABASE_URL)
 
 db-run:
 	docker network create $(DOCKER_NETWORK) || true
 	docker run -it -p 5432:5432 --network $(DOCKER_NETWORK) --name some-postgres -e POSTGRES_PASSWORD=123 -e POSTGRES_USER=test-user -e POSTGRES_DB=test-db -d postgres -c shared_preload_libraries='pg_stat_statements'
+
+db-stop:
+	docker stop some-postgres
+
+db-start:
+	docker start some-postgres
 
 db-run-pganalyze:
 	docker run --rm --network prediction-game --env-file pganalyze_collector.env quay.io/pganalyze/collector:stable collector
