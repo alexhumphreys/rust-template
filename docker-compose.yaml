@@ -28,7 +28,9 @@ services:
       POSTGRES_DB: test-db
 
   api:
-    build: api
+    build:
+      context: .
+      target: api
     ports:
       - "3000:3000"
     depends_on:
@@ -41,7 +43,9 @@ services:
       DATABASE_URL: postgres://test-user:123@db:5432/test-db
 
   website:
-    build: website
+    build:
+      context: .
+      target: website
     ports:
       - "8000:8000"
     depends_on:
@@ -50,6 +54,7 @@ services:
       OTEL_SERVICE_NAME: api-service
       OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: http://jaeger:4317
       RUST_LOG=info,axum_tracing_opentelemetry: info,otel=debug
+      API_BASE_URL: "http://api:3000"
 
 volumes:
   db-data:
