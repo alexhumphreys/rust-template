@@ -5,4 +5,5 @@ members = [
     "website",
     "shared",
 ]
+resolver = "2"
 

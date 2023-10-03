@@ -4,6 +4,7 @@
 //! cargo run -p example-templates
 //! ```
 
+use api_client::{self, apis::configuration};
 use askama::Template;
 use axum::{
     body::{Body, Bytes},
@@ -34,6 +35,7 @@ async fn main() {
     // build our application with some routes
     let app = Router::new()
         .route("/greet/:name", get(greet))
+        .route("/hit/client", get(via_lib))
         .route("/hit/api", get(proxy_via_reqwest));
 
     // run it
@@ -85,6 +87,20 @@ async fn proxy_via_reqwest() -> impl IntoResponse {
     };
 
     Json(reqwest_response.text().await.unwrap()).into_response()
+}
+
+async fn via_lib() -> impl IntoResponse {
+    let api_base_url = std::env::var("API_BASE_URL").expect("Define API_BASE_URL");
+    let configuration = configuration::Configuration {
+        base_path: api_base_url,
+        ..Default::default()
+    };
+    let arg = api_client::models::SendCode::new("1234".to_string());
+
+    let res = api_client::apis::default_api::send_code(&configuration, arg)
+        .await
+        .ok();
+    Json(res).into_response()
 }
 
 #[cfg(test)]
