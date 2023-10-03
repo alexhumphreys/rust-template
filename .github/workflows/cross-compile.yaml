@@ -6,42 +6,26 @@ on: [push, pull_request]
 name: Cross-compile
 
 jobs:
-  test:
-    strategy:
-      matrix:
-        os:
-          - ubuntu-latest
-        services:
-          - api
-          - website
-    name: test
-    runs-on: ${{ matrix.os }}
-    steps:
-      - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
-      - env:
-          SQLX_OFFLINE: "true"
-        run: |
-          cd ${{ matrix.services }}
-          cargo test
-
-  build:
-    strategy:
-      matrix:
-        os:
-          - ubuntu-latest
-          - macos-latest
-        services:
-          - api
-          - website
+  build-test:
     name: Build and test
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
       - env:
           SQLX_OFFLINE: "true"
         run: |
-          cd ${{ matrix.services }}
+          cargo build
           cargo test
           cargo build --release
+
+  build-mac:
+    name: Build on mac
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - env:
+          SQLX_OFFLINE: "true"
+        run: |
+          cargo build
