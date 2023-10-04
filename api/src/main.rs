@@ -1,7 +1,6 @@
 mod db;
 mod handler;
 mod model;
-mod routes;
 mod schema;
 
 use api_server::init_subscribers_custom;
@@ -68,6 +67,11 @@ async fn main() {
 
     let app_state = Arc::new(AppState { db: pool.clone() });
 
+    let server = Server::axum()
+        .post("/send-code", send_code)
+        .write_and_exit_if_env_var_set("openapi.yaml") // set OASGEN_WRITE_SPEC=1
+        .freeze();
+
     let app = Router::new()
         .merge(metrics.routes()) // TODO other port?
         .route("/", get(handler))
@@ -79,7 +83,7 @@ async fn main() {
         //start OpenTelemetry trace on incoming request
         .layer(OtelAxumLayer::default())
         .layer(metrics)
-        .merge(routes::oa_generated_server());
+        .merge(server.into_router());
 
     // run it
     let addr = SocketAddr::from(([0, 0, 0, 0], 3000));
