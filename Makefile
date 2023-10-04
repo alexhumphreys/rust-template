@@ -13,7 +13,7 @@ db-run:
 	docker run -it -p 5432:5432 --network $(DOCKER_NETWORK) --name some-postgres -e POSTGRES_PASSWORD=123 -e POSTGRES_USER=test-user -e POSTGRES_DB=test-db -d postgres -c shared_preload_libraries='pg_stat_statements'
 
 db-stop:
-	docker stop some-postgres
+	docker stop some-postgres || true
 
 db-start:
 	docker start some-postgres
@@ -23,3 +23,14 @@ db-run-pganalyze:
 
 db-delete:
 	docker rm -f some-postgres
+
+docker-compose-build dcb:
+	docker compose build
+
+docker-compose-up dcu: db-stop
+	docker compose up
+
+docker-compose-down dcd: docker-compose-down-int db-start
+
+docker-compose-down-int:
+	docker compose down
