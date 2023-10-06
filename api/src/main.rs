@@ -5,6 +5,7 @@ mod schema;
 
 use api_server::init_subscribers_custom;
 use axum::{
+    middleware,
     response::{Html, IntoResponse},
     routing::get,
     Json, Router,
@@ -14,6 +15,7 @@ use axum_tracing_opentelemetry::middleware::{OtelAxumLayer, OtelInResponseLayer}
 use dotenvy;
 use oasgen::{openapi, OaSchema, Server};
 use serde::{Deserialize, Serialize};
+use shared::auth;
 use sqlx::{postgres::PgPoolOptions, Pool, Postgres};
 use std::net::SocketAddr;
 use std::sync::Arc;
@@ -76,6 +78,7 @@ async fn main() {
         .merge(metrics.routes()) // TODO other port?
         .route("/", get(handler))
         .route("/api/healthz", get(health_checker_handler))
+        .route_layer(middleware::from_fn(auth::auth))
         .route("/api/clients", get(handler::get_client_handler))
         .with_state(app_state)
         // include trace context as header into the response

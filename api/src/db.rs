@@ -1,4 +1,4 @@
-use crate::{db, model::ClientModel, schema::FilterOptions, AppState};
+use crate::{model::ClientModel, schema::FilterOptions, AppState};
 use axum::extract::{Query, State};
 use shared::tracing::make_otel_db_span;
 use sqlx::Execute;
