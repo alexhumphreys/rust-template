@@ -1,4 +1,3 @@
-use crate::jsonapi;
 use anyhow;
 use axum::http::StatusCode;
 use axum::response::{IntoResponse, Json, Response};
@@ -36,13 +35,26 @@ impl Error {
                     "Internal server error".to_string(),
                 );
             }
-            Error::Sqlx(e) => {
-                tracing::error!("Sqlx error: {:?}", e);
-                return (
-                    StatusCode::INTERNAL_SERVER_ERROR,
-                    "Internal server error".to_string(),
-                );
-            }
+            Error::Sqlx(e) => match e {
+                sqlx::Error::RowNotFound => {
+                    return (
+                        StatusCode::NOT_FOUND,
+                        "Request returned no results".to_string(),
+                    )
+                }
+                //sqlx::Error::Database(e) => {
+                //if e.code().unwrap_or("".to_string()) == "23505" {
+                //return (StatusCode::CONFLICT, "Conflict".to_string());
+                //}
+                //}
+                _ => {
+                    tracing::error!("Sqlx error: {:?}", e);
+                    return (
+                        StatusCode::INTERNAL_SERVER_ERROR,
+                        "Internal server error".to_string(),
+                    );
+                }
+            },
             _ => {
                 tracing::error!("Unknown internal server error");
                 return (

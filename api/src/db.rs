@@ -4,7 +4,7 @@ use crate::{
     schema::FilterOptions,
     AppState,
 };
-use anyhow::Result;
+use anyhow::{Context, Result};
 use axum::extract::{Query, State};
 use axum::http::StatusCode;
 use shared::tracing::make_otel_db_span;
@@ -38,10 +38,11 @@ pub async fn get_client_list(
     Ok(query_result)
 }
 
-async fn get_account(
+pub async fn get_account(
     account_id: Uuid,
     State(data): State<Arc<AppState>>,
 ) -> Result<AccountModel, Error> {
+    tracing::info!("Searching for account id {}", account_id.to_string());
     let query = sqlx::query_as!(
         AccountModel,
         "SELECT * FROM accounts WHERE id = $1",
@@ -52,6 +53,7 @@ async fn get_account(
         .fetch_one(&data.db)
         .instrument(make_otel_db_span("SELECT", sql))
         .await?;
+    //.with_context(|| format!("No value found for: {}", account_id.to_string()))?;
 
     Ok(query_result)
 }

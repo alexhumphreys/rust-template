@@ -1,7 +1,6 @@
 mod db;
 mod error;
 mod handler;
-mod jsonapi;
 mod model;
 mod schema;
 
@@ -85,6 +84,7 @@ async fn main() {
         //.route_layer(middleware::from_fn(auth::auth))
         .route("/404", get(four_handler))
         .route("/api/clients", get(handler::get_client_handler))
+        .route("/api/accounts/:id", get(handler::get_account))
         .with_state(app_state)
         // include trace context as header into the response
         .layer(OtelInResponseLayer::default())

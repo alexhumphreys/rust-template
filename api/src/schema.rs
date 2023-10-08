@@ -1,4 +1,5 @@
 use serde::Deserialize;
+use uuid::Uuid;
 
 #[derive(Deserialize, Debug, Default)]
 pub struct FilterOptions {
@@ -8,5 +9,10 @@ pub struct FilterOptions {
 
 #[derive(Deserialize, Debug)]
 pub struct ParamOptions {
-    pub id: String,
+    pub id: Uuid,
+}
+
+#[derive(Deserialize, Debug)]
+pub struct PathId {
+    pub id: Uuid,
 }
