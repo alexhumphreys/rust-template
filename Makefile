@@ -8,6 +8,12 @@ db-connect:
 db-migrate:
 	cd api/ && cargo sqlx migrate run --database-url $(DATABASE_URL)
 
+db-add-migration:
+	cd api/ && cargo sqlx migrate add
+
+db-migrate-prepare:
+	cd api/ && cargo sqlx prepare
+
 db-run:
 	docker network create $(DOCKER_NETWORK) || true
 	docker run -it -p 5432:5432 --network $(DOCKER_NETWORK) --name some-postgres -e POSTGRES_PASSWORD=123 -e POSTGRES_USER=test-user -e POSTGRES_DB=test-db -d postgres -c shared_preload_libraries='pg_stat_statements'

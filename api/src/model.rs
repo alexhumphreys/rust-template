@@ -8,3 +8,10 @@ pub struct ClientModel {
     pub id: Uuid,
     pub name: String,
 }
+
+#[derive(Debug, FromRow, Deserialize, Serialize)]
+pub struct AccountModel {
+    pub id: Uuid,
+    pub name: String,
+    pub credential: String,
+}

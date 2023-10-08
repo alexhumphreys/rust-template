@@ -1,14 +1,22 @@
-use crate::{model::ClientModel, schema::FilterOptions, AppState};
+use crate::{
+    error::Error,
+    model::{AccountModel, ClientModel},
+    schema::FilterOptions,
+    AppState,
+};
+use anyhow::Result;
 use axum::extract::{Query, State};
+use axum::http::StatusCode;
 use shared::tracing::make_otel_db_span;
 use sqlx::Execute;
 use std::sync::Arc;
 use tracing::{self, Instrument};
+use uuid::Uuid;
 
 pub async fn get_client_list(
     opts: Option<Query<FilterOptions>>,
     State(data): State<Arc<AppState>>,
-) -> Result<Vec<ClientModel>, String> {
+) -> Result<Vec<ClientModel>, Error> {
     let Query(opts) = opts.unwrap_or_default();
 
     let limit = opts.limit.unwrap_or(10);
@@ -25,14 +33,25 @@ pub async fn get_client_list(
     let query_result = query
         .fetch_all(&data.db)
         .instrument(make_otel_db_span("SELECT", sql))
-        .await;
+        .await?;
 
-    match query_result {
-        Ok(clients) => return Ok(clients),
-        Err(e) => {
-            let msg = "Something bad happened while fetching all client items";
-            tracing::error!("{}: {}", msg, e);
-            Err(msg.to_string())
-        }
-    }
+    Ok(query_result)
+}
+
+async fn get_account(
+    account_id: Uuid,
+    State(data): State<Arc<AppState>>,
+) -> Result<AccountModel, Error> {
+    let query = sqlx::query_as!(
+        AccountModel,
+        "SELECT * FROM accounts WHERE id = $1",
+        account_id
+    );
+    let sql = query.sql().clone();
+    let query_result = query
+        .fetch_one(&data.db)
+        .instrument(make_otel_db_span("SELECT", sql))
+        .await?;
+
+    Ok(query_result)
 }

@@ -1,5 +1,7 @@
 mod db;
+mod error;
 mod handler;
+mod jsonapi;
 mod model;
 mod schema;
 
@@ -54,6 +56,8 @@ async fn main() {
     let database_url = std::env::var("DATABASE_URL").expect("DATABASE_URL must be set");
     let pool = match PgPoolOptions::new()
         .max_connections(10)
+        .acquire_timeout(std::time::Duration::from_secs(2))
+        .test_before_acquire(false)
         .connect(&database_url)
         .await
     {
@@ -78,7 +82,8 @@ async fn main() {
         .merge(metrics.routes()) // TODO other port?
         .route("/", get(handler))
         .route("/api/healthz", get(health_checker_handler))
-        .route_layer(middleware::from_fn(auth::auth))
+        //.route_layer(middleware::from_fn(auth::auth))
+        .route("/404", get(four_handler))
         .route("/api/clients", get(handler::get_client_handler))
         .with_state(app_state)
         // include trace context as header into the response
@@ -110,6 +115,10 @@ async fn health_checker_handler() -> impl IntoResponse {
 
 async fn handler() -> Html<&'static str> {
     Html("<h1>Hello, World!</h1>")
+}
+
+async fn four_handler() -> impl IntoResponse {
+    error::Error::NotFound
 }
 
 #[cfg(test)]
