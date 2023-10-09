@@ -1,9 +1,10 @@
 use anyhow;
+use axum;
 use axum::extract::rejection::JsonRejection;
 use axum::http::StatusCode;
 use axum::response::{IntoResponse, Json, Response};
+use reqwest;
 use serde::{Deserialize, Serialize};
-use sqlx;
 
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
@@ -24,6 +25,12 @@ pub enum Error {
 
     #[error("A database error occurred")]
     Sqlx(#[from] sqlx::Error),
+
+    #[error("A reqwest error occurred")]
+    Reqwest(#[from] reqwest::Error),
+
+    #[error("An axum error occurred")]
+    Axum(#[from] axum::Error),
 }
 
 impl Error {
@@ -35,6 +42,20 @@ impl Error {
             Error::BadRequest => StatusCode::BAD_REQUEST,
             Error::Anyhow(e) => {
                 tracing::error!("Anyhow error: {:?}", e);
+                return (
+                    StatusCode::INTERNAL_SERVER_ERROR,
+                    "Internal server error".to_string(),
+                );
+            }
+            Error::Reqwest(e) => {
+                tracing::error!("Reqwest error: {:?}", e);
+                return (
+                    StatusCode::INTERNAL_SERVER_ERROR,
+                    "Internal server error".to_string(),
+                );
+            }
+            Error::Axum(e) => {
+                tracing::error!("Axum error: {:?}", e);
                 return (
                     StatusCode::INTERNAL_SERVER_ERROR,
                     "Internal server error".to_string(),

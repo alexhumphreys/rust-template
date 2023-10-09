@@ -3712,6 +3712,7 @@ dependencies = [
  "init-tracing-opentelemetry",
  "opentelemetry",
  "opentelemetry-otlp",
+ "reqwest",
  "serde",
  "serde_json",
  "sqlx",
@@ -4861,10 +4862,13 @@ dependencies = [
 name = "website"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
  "askama",
  "axum",
  "dotenvy",
  "reqwest",
+ "shared",
+ "thiserror",
  "tokio",
  "tracing",
  "tracing-subscriber",

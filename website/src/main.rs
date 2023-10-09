@@ -16,6 +16,7 @@ use axum::{
 };
 use dotenvy;
 use reqwest;
+use shared::error::Error;
 use std::net::SocketAddr;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
@@ -74,17 +75,12 @@ where
     }
 }
 
-async fn proxy_via_reqwest() -> impl IntoResponse {
+async fn proxy_via_reqwest() -> Result<impl IntoResponse, Error> {
     let api_base_url = std::env::var("API_BASE_URL").expect("Define API_BASE_URL");
-    let reqwest_response = match reqwest::get(format!("{}/api/clients", api_base_url)).await {
-        Ok(res) => res,
-        Err(err) => {
-            tracing::error!(%err, "request failed");
-            return (axum::http::StatusCode::INTERNAL_SERVER_ERROR, "foo").into_response();
-        }
-    };
+    let reqwest_response = reqwest::get(format!("{}/api/clients", api_base_url)).await?;
 
-    Json(reqwest_response.text().await.unwrap()).into_response()
+    let text = reqwest_response.text().await?;
+    Ok(Json(text).into_response())
 }
 
 #[cfg(test)]
