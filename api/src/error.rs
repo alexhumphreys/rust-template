@@ -1,4 +1,5 @@
 use anyhow;
+use axum::extract::rejection::JsonRejection;
 use axum::http::StatusCode;
 use axum::response::{IntoResponse, Json, Response};
 use serde::{Deserialize, Serialize};
@@ -15,6 +16,9 @@ pub enum Error {
     #[error("Not found")]
     NotFound,
 
+    #[error("Bad request")]
+    BadRequest,
+
     #[error("An internal server error occurred")]
     Anyhow(#[from] anyhow::Error),
 
@@ -28,6 +32,7 @@ impl Error {
             Error::Unauthorized => StatusCode::UNAUTHORIZED,
             Error::Forbidden => StatusCode::FORBIDDEN,
             Error::NotFound => StatusCode::NOT_FOUND,
+            Error::BadRequest => StatusCode::BAD_REQUEST,
             Error::Anyhow(e) => {
                 tracing::error!("Anyhow error: {:?}", e);
                 return (
@@ -88,5 +93,16 @@ impl IntoResponse for Error {
         .to_vec();
 
         (code, Json(res)).into_response()
+    }
+}
+
+// We implement `From<JsonRejection> for ApiError`
+impl From<JsonRejection> for Error {
+    fn from(rejection: JsonRejection) -> Self {
+        Error::BadRequest
+        //Self {
+        //status: rejection.status(),
+        //message: rejection.body_text(),
+        //}
     }
 }

@@ -1,8 +1,7 @@
 use crate::{
     error::Error,
     model::{AccountModel, ClientModel},
-    schema::FilterOptions,
-    AppState,
+    schema, AppState,
 };
 use anyhow::{Context, Result};
 use axum::extract::{Query, State};
@@ -14,7 +13,7 @@ use tracing::{self, Instrument};
 use uuid::Uuid;
 
 pub async fn get_client_list(
-    opts: Option<Query<FilterOptions>>,
+    opts: Option<Query<schema::FilterOptions>>,
     State(data): State<Arc<AppState>>,
 ) -> Result<Vec<ClientModel>, Error> {
     let Query(opts) = opts.unwrap_or_default();
@@ -42,7 +41,7 @@ pub async fn get_account(
     account_id: Uuid,
     State(data): State<Arc<AppState>>,
 ) -> Result<AccountModel, Error> {
-    tracing::info!("Searching for account id {}", account_id.to_string());
+    tracing::debug!("Searching for account id {}", account_id.to_string());
     let query = sqlx::query_as!(
         AccountModel,
         "SELECT * FROM accounts WHERE id = $1",
@@ -54,6 +53,48 @@ pub async fn get_account(
         .instrument(make_otel_db_span("SELECT", sql))
         .await?;
     //.with_context(|| format!("No value found for: {}", account_id.to_string()))?;
+
+    Ok(query_result)
+}
+
+pub async fn create_account(
+    account: schema::CreateAccount,
+    State(data): State<Arc<AppState>>,
+) -> Result<AccountModel, Error> {
+    tracing::debug!("creating account");
+    let query = sqlx::query_as!(
+        AccountModel,
+        "INSERT INTO accounts(name, credential) VALUES ($1, $2) RETURNING *",
+        account.name,
+        account.credential
+    );
+    let sql = query.sql().clone();
+    let query_result = query
+        .fetch_one(&data.db)
+        .instrument(make_otel_db_span("INSERT", sql))
+        .await?;
+
+    Ok(query_result)
+}
+
+pub async fn put_account(
+    id: Uuid,
+    account: schema::CreateAccount,
+    State(data): State<Arc<AppState>>,
+) -> Result<AccountModel, Error> {
+    tracing::debug!("creating account");
+    let query = sqlx::query_as!(
+        AccountModel,
+        "UPDATE accounts SET name = $1, credential = $2 WHERE id = $3 RETURNING *",
+        account.name,
+        account.credential,
+        id
+    );
+    let sql = query.sql().clone();
+    let query_result = query
+        .fetch_one(&data.db)
+        .instrument(make_otel_db_span("INSERT", sql))
+        .await?;
 
     Ok(query_result)
 }

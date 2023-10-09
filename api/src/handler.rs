@@ -1,16 +1,15 @@
 use crate::{
     db,
     error::Error,
-    schema::{FilterOptions, ParamOptions, PathId},
+    schema::{CreateAccount, FilterOptions, PathId},
     AppState,
 };
+use axum::{debug_handler, response::IntoResponse};
 use axum::{
     extract::{Path, Query, State},
-    response::IntoResponse,
     Json,
 };
 use std::sync::Arc;
-use uuid::Uuid;
 
 #[tracing::instrument]
 pub async fn get_client_handler(
@@ -36,6 +35,32 @@ pub async fn get_account(
         "status": "success",
         "results": 1,
         "data": account
+    });
+    Ok(Json(json_response))
+}
+
+#[tracing::instrument]
+pub async fn create_account(
+    Json(payload): Json<CreateAccount>,
+    State(data): State<Arc<AppState>>,
+) -> Result<impl IntoResponse, Error> {
+    let account = db::create_account(payload, State(data)).await?;
+    let json_response = serde_json::json!({
+        "data": account
+    });
+    Ok(Json(json_response))
+}
+
+#[debug_handler]
+#[tracing::instrument]
+pub async fn put_account(
+    Path(id): Path<PathId>,
+    State(data): State<Arc<AppState>>,
+    Json(payload): Json<CreateAccount>,
+) -> Result<impl IntoResponse, Error> {
+    let account = db::put_account(id.id, payload, State(data)).await?;
+    let json_response = serde_json::json!({
+    "data": account
     });
     Ok(Json(json_response))
 }

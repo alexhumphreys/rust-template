@@ -8,7 +8,7 @@ use api_server::init_subscribers_custom;
 use axum::{
     middleware,
     response::{Html, IntoResponse},
-    routing::get,
+    routing::{get, patch, put},
     Json, Router,
 };
 use axum_otel_metrics::HttpMetricsLayerBuilder;
@@ -84,6 +84,7 @@ async fn main() {
         //.route_layer(middleware::from_fn(auth::auth))
         .route("/404", get(four_handler))
         .route("/api/clients", get(handler::get_client_handler))
+        .route("/api/accounts/:id", put(handler::put_account))
         .route("/api/accounts/:id", get(handler::get_account))
         .with_state(app_state)
         // include trace context as header into the response
