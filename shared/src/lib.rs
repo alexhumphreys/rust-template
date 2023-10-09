@@ -1,5 +1,6 @@
 pub mod auth;
 pub mod error;
+pub mod telemetry;
 pub mod tracing;
 
 pub fn add(left: usize, right: usize) -> usize {

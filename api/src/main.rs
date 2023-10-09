@@ -3,7 +3,6 @@ mod handler;
 mod model;
 mod schema;
 
-use api_server::init_subscribers_custom;
 use axum::{
     middleware,
     response::{Html, IntoResponse},
@@ -16,7 +15,7 @@ use dotenvy;
 use oasgen::{openapi, OaSchema, Server};
 use serde::{Deserialize, Serialize};
 use shared;
-use shared::auth;
+use shared::{auth, telemetry::init_subscribers_custom};
 use sqlx::{postgres::PgPoolOptions, Pool, Postgres};
 use std::net::SocketAddr;
 use std::sync::Arc;

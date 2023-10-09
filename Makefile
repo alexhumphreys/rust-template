@@ -40,3 +40,8 @@ docker-compose-down dcd: docker-compose-down-int db-start
 
 docker-compose-down-int:
 	docker compose down
+
+clean:
+	cargo clean
+	cd api/ && cargo clean
+	cd website/ && cargo clean
