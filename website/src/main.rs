@@ -14,28 +14,44 @@ use axum::{
     routing::get,
     Router,
 };
+use axum_tracing_opentelemetry::middleware::{OtelAxumLayer, OtelInResponseLayer};
 use dotenvy;
+use opentelemetry::{
+    global,
+    global::set_text_map_propagator,
+    propagation::TextMapPropagator,
+    sdk::propagation::TraceContextPropagator,
+    trace::{TraceContextExt, Tracer},
+};
 use reqwest;
-use shared::error::Error;
-use std::net::SocketAddr;
-use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
+use reqwest::{
+    header::USER_AGENT,
+    header::{HeaderMap, HeaderName, HeaderValue},
+};
+use reqwest_middleware::{ClientBuilder, Extension};
+use reqwest_tracing::{OtelName, TracingMiddleware};
+use shared::{error::Error, telemetry::init_subscribers_custom, tracing::make_otel_reqwest_span};
+use std::{collections::HashMap, net::SocketAddr};
+use tracing::{self, info_span, instrument::WithSubscriber, Instrument, Span};
+use tracing_opentelemetry::OpenTelemetrySpanExt;
+use tracing_opentelemetry_instrumentation_sdk::find_current_trace_id;
+use tracing_subscriber::layer::SubscriberExt;
+use tracing_subscriber::util::SubscriberInitExt;
 
 #[tokio::main]
 async fn main() {
     dotenvy::dotenv().ok();
 
-    tracing_subscriber::registry()
-        .with(
-            tracing_subscriber::EnvFilter::try_from_default_env()
-                .unwrap_or_else(|_| "example_templates=debug".into()),
-        )
-        .with(tracing_subscriber::fmt::layer())
-        .init();
+    init_subscribers_custom().ok();
 
     // build our application with some routes
     let app = Router::new()
         .route("/greet/:name", get(greet))
-        .route("/hit/api", get(proxy_via_reqwest));
+        .route("/hit/api", get(proxy_via_reqwest))
+        // include trace context as header into the response
+        .layer(OtelInResponseLayer::default())
+        //start OpenTelemetry trace on incoming request
+        .layer(OtelAxumLayer::default());
 
     // run it
     let addr = SocketAddr::from(([0, 0, 0, 0], 8000));
@@ -75,11 +91,43 @@ where
     }
 }
 
+#[tracing::instrument]
 async fn proxy_via_reqwest() -> Result<impl IntoResponse, Error> {
-    let api_base_url = std::env::var("API_BASE_URL").expect("Define API_BASE_URL");
-    let reqwest_response = reqwest::get(format!("{}/api/clients", api_base_url)).await?;
+    let span = tracing::Span::current();
+    let context = span.context();
+    let propagator = TraceContextPropagator::new();
+    let mut fields = HashMap::new();
+    propagator.inject_context(&context, &mut fields);
+    propagator.inject_context(&context, &mut fields);
+    let headers = fields
+        .into_iter()
+        .map(|(k, v)| {
+            (
+                HeaderName::try_from(k).unwrap(),
+                HeaderValue::try_from(v).unwrap(),
+            )
+        })
+        .collect();
 
-    let text = reqwest_response.text().await?;
+    set_text_map_propagator(TraceContextPropagator::new());
+    let trace_id = find_current_trace_id().unwrap_or("".to_string());
+    tracing::info!("traceId:");
+    tracing::info!(trace_id);
+    let api_base_url = std::env::var("API_BASE_URL").expect("Define API_BASE_URL");
+
+    let client = ClientBuilder::new(reqwest::Client::new())
+        // Trace HTTP requests. See the tracing crate to make use of these traces.
+        .with_init(Extension(OtelName("my-client".into())))
+        .with(TracingMiddleware::default())
+        .build();
+    let req = client
+        .get(format!("{}/api/clients", api_base_url))
+        .headers(headers)
+        .send()
+        .instrument(info_span!("some span"));
+    let res = req.await.unwrap();
+
+    let text = res.text().await?;
     Ok(Json(text).into_response())
 }
 

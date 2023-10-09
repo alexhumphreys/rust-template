@@ -129,7 +129,7 @@ dependencies = [
  "tokio",
  "tower-http",
  "tracing",
- "tracing-opentelemetry",
+ "tracing-opentelemetry 0.21.0",
  "tracing-opentelemetry-instrumentation-sdk",
  "tracing-subscriber",
  "uuid",
@@ -493,7 +493,7 @@ dependencies = [
  "pin-project-lite",
  "tower",
  "tracing",
- "tracing-opentelemetry",
+ "tracing-opentelemetry 0.21.0",
  "tracing-opentelemetry-instrumentation-sdk",
 ]
 
@@ -1246,8 +1246,10 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "be4136b2a15dd319360be1c07d9933517ccf0be8f16bf62a3bee4f0d618df427"
 dependencies = [
  "cfg-if",
+ "js-sys",
  "libc",
  "wasi",
+ "wasm-bindgen",
 ]
 
 [[package]]
@@ -2318,7 +2320,7 @@ dependencies = [
  "opentelemetry-semantic-conventions",
  "thiserror",
  "tracing",
- "tracing-opentelemetry",
+ "tracing-opentelemetry 0.21.0",
  "tracing-subscriber",
 ]
 
@@ -3343,6 +3345,7 @@ dependencies = [
  "js-sys",
  "log",
  "mime",
+ "mime_guess",
  "native-tls",
  "once_cell",
  "percent-encoding",
@@ -3365,6 +3368,39 @@ dependencies = [
  "wasm-streams",
  "web-sys",
  "winreg",
+]
+
+[[package]]
+name = "reqwest-middleware"
+version = "0.2.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ff44108c7925d082f2861e683a88618b68235ad9cdc60d64d9d1188efc951cdb"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "http",
+ "reqwest",
+ "serde",
+ "task-local-extensions",
+ "thiserror",
+]
+
+[[package]]
+name = "reqwest-tracing"
+version = "0.4.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "14b1e66540e0cac90acadaf7109bf99c90d95abcc94b4c096bfa16a2d7aa7a71"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "getrandom",
+ "matchit",
+ "opentelemetry",
+ "reqwest",
+ "reqwest-middleware",
+ "task-local-extensions",
+ "tracing",
+ "tracing-opentelemetry 0.20.0",
 ]
 
 [[package]]
@@ -3718,7 +3754,7 @@ dependencies = [
  "sqlx",
  "thiserror",
  "tracing",
- "tracing-opentelemetry",
+ "tracing-opentelemetry 0.21.0",
  "tracing-opentelemetry-instrumentation-sdk",
  "tracing-subscriber",
 ]
@@ -4164,6 +4200,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "task-local-extensions"
+version = "0.1.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ba323866e5d033818e3240feeb9f7db2c4296674e4d9e16b97b7bf8f490434e8"
+dependencies = [
+ "pin-utils",
+]
+
+[[package]]
 name = "tempfile"
 version = "3.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4531,6 +4576,20 @@ dependencies = [
 
 [[package]]
 name = "tracing-opentelemetry"
+version = "0.20.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "fc09e402904a5261e42cf27aea09ccb7d5318c6717a9eec3d8e2e65c56b18f19"
+dependencies = [
+ "once_cell",
+ "opentelemetry",
+ "tracing",
+ "tracing-core",
+ "tracing-log",
+ "tracing-subscriber",
+]
+
+[[package]]
+name = "tracing-opentelemetry"
 version = "0.21.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "75327c6b667828ddc28f5e3f169036cb793c3f588d83bf0f262a7f062ffed3c8"
@@ -4555,7 +4614,7 @@ dependencies = [
  "opentelemetry-http",
  "opentelemetry_api",
  "tracing",
- "tracing-opentelemetry",
+ "tracing-opentelemetry 0.21.0",
 ]
 
 [[package]]
@@ -4865,12 +4924,19 @@ dependencies = [
  "anyhow",
  "askama",
  "axum",
+ "axum-tracing-opentelemetry",
  "dotenvy",
+ "opentelemetry",
+ "opentelemetry-otlp",
  "reqwest",
+ "reqwest-middleware",
+ "reqwest-tracing",
  "shared",
  "thiserror",
  "tokio",
  "tracing",
+ "tracing-opentelemetry 0.21.0",
+ "tracing-opentelemetry-instrumentation-sdk",
  "tracing-subscriber",
 ]
 
