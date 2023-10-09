@@ -1,5 +1,4 @@
 mod db;
-mod error;
 mod handler;
 mod model;
 mod schema;
@@ -8,7 +7,7 @@ use api_server::init_subscribers_custom;
 use axum::{
     middleware,
     response::{Html, IntoResponse},
-    routing::{get, patch, put},
+    routing::{get, post, put},
     Json, Router,
 };
 use axum_otel_metrics::HttpMetricsLayerBuilder;
@@ -16,6 +15,7 @@ use axum_tracing_opentelemetry::middleware::{OtelAxumLayer, OtelInResponseLayer}
 use dotenvy;
 use oasgen::{openapi, OaSchema, Server};
 use serde::{Deserialize, Serialize};
+use shared;
 use shared::auth;
 use sqlx::{postgres::PgPoolOptions, Pool, Postgres};
 use std::net::SocketAddr;
@@ -86,6 +86,7 @@ async fn main() {
         .route("/api/clients", get(handler::get_client_handler))
         .route("/api/accounts/:id", put(handler::put_account))
         .route("/api/accounts/:id", get(handler::get_account))
+        .route("/api/accounts", post(handler::create_account))
         .with_state(app_state)
         // include trace context as header into the response
         .layer(OtelInResponseLayer::default())
@@ -119,7 +120,7 @@ async fn handler() -> Html<&'static str> {
 }
 
 async fn four_handler() -> impl IntoResponse {
-    error::Error::NotFound
+    shared::error::Error::NotFound
 }
 
 #[cfg(test)]

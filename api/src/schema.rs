@@ -1,10 +1,4 @@
-use crate::error::Error;
-use axum::{
-    extract::rejection::JsonRejection, extract::FromRequest, http::StatusCode,
-    response::IntoResponse,
-};
 use serde::Deserialize;
-use serde::Serialize;
 use uuid::Uuid;
 
 #[derive(Deserialize, Debug, Default)]

@@ -1,4 +1,5 @@
 pub mod auth;
+pub mod error;
 pub mod tracing;
 
 pub fn add(left: usize, right: usize) -> usize {

@@ -1,6 +1,5 @@
 use crate::{
     db,
-    error::Error,
     schema::{CreateAccount, FilterOptions, PathId},
     AppState,
 };
@@ -9,6 +8,7 @@ use axum::{
     extract::{Path, Query, State},
     Json,
 };
+use shared::error::Error;
 use std::sync::Arc;
 
 #[tracing::instrument]
@@ -41,8 +41,8 @@ pub async fn get_account(
 
 #[tracing::instrument]
 pub async fn create_account(
-    Json(payload): Json<CreateAccount>,
     State(data): State<Arc<AppState>>,
+    Json(payload): Json<CreateAccount>,
 ) -> Result<impl IntoResponse, Error> {
     let account = db::create_account(payload, State(data)).await?;
     let json_response = serde_json::json!({

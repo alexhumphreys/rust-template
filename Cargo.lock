@@ -3705,11 +3705,17 @@ dependencies = [
 name = "shared"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
  "axum",
+ "axum-macros",
  "axum-tracing-opentelemetry",
  "init-tracing-opentelemetry",
  "opentelemetry",
  "opentelemetry-otlp",
+ "serde",
+ "serde_json",
+ "sqlx",
+ "thiserror",
  "tracing",
  "tracing-opentelemetry",
  "tracing-opentelemetry-instrumentation-sdk",
