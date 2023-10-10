@@ -1,7 +1,6 @@
 mod db;
 mod handler;
 mod model;
-mod schema;
 
 use axum::{
     middleware,
@@ -85,6 +84,7 @@ async fn main() {
         .route("/api/clients", get(handler::get_client_handler))
         .route("/api/accounts/:id", put(handler::put_account))
         .route("/api/accounts/:id", get(handler::get_account))
+        .route("/api/accounts", get(handler::search_account))
         .route("/api/accounts", post(handler::create_account))
         .with_state(app_state)
         // include trace context as header into the response

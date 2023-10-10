@@ -18,6 +18,11 @@ pub struct PathId {
 }
 
 #[derive(Deserialize, Debug)]
+pub struct PathName {
+    pub name: String,
+}
+
+#[derive(Deserialize, Debug)]
 pub struct CreateAccount {
     pub name: String,
     pub credential: String,

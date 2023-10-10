@@ -1,11 +1,11 @@
 use crate::{
     model::{AccountModel, ClientModel},
-    schema, AppState,
+    AppState,
 };
 use anyhow::{Context, Result};
 use axum::extract::{Query, State};
 use axum::http::StatusCode;
-use shared::{error::Error, tracing::make_otel_db_span};
+use shared::{error::Error, schema, tracing::make_otel_db_span};
 use sqlx::Execute;
 use std::sync::Arc;
 use tracing::{self, Instrument};
@@ -45,6 +45,26 @@ pub async fn get_account(
         AccountModel,
         "SELECT * FROM accounts WHERE id = $1",
         account_id
+    );
+    let sql = query.sql().clone();
+    let query_result = query
+        .fetch_one(&data.db)
+        .instrument(make_otel_db_span("SELECT", sql))
+        .await?;
+    //.with_context(|| format!("No value found for: {}", account_id.to_string()))?;
+
+    Ok(query_result)
+}
+
+pub async fn get_account_by_name(
+    account_name: String,
+    State(data): State<Arc<AppState>>,
+) -> Result<AccountModel, Error> {
+    tracing::debug!("Searching for account by name");
+    let query = sqlx::query_as!(
+        AccountModel,
+        "SELECT * FROM accounts WHERE name = $1",
+        account_name
     );
     let sql = query.sql().clone();
     let query_result = query

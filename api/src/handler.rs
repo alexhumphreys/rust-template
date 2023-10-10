@@ -1,14 +1,14 @@
-use crate::{
-    db,
-    schema::{CreateAccount, FilterOptions, PathId},
-    AppState,
-};
+use crate::{db, AppState};
 use axum::{debug_handler, response::IntoResponse};
 use axum::{
     extract::{Path, Query, State},
     Json,
 };
-use shared::error::Error;
+use shared::schema::PathName;
+use shared::{
+    error::Error,
+    schema::{CreateAccount, FilterOptions, PathId},
+};
 use std::sync::Arc;
 
 #[tracing::instrument]
@@ -31,6 +31,20 @@ pub async fn get_account(
     State(data): State<Arc<AppState>>,
 ) -> Result<impl IntoResponse, Error> {
     let account = db::get_account(id.id, State(data)).await?;
+    let json_response = serde_json::json!({
+        "status": "success",
+        "results": 1,
+        "data": account
+    });
+    Ok(Json(json_response))
+}
+
+#[tracing::instrument]
+pub async fn search_account(
+    Query(name): Query<PathName>,
+    State(data): State<Arc<AppState>>,
+) -> Result<impl IntoResponse, Error> {
+    let account = db::get_account_by_name(name.name, State(data)).await?;
     let json_response = serde_json::json!({
         "status": "success",
         "results": 1,
