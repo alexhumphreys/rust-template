@@ -3749,6 +3749,8 @@ dependencies = [
  "opentelemetry",
  "opentelemetry-otlp",
  "reqwest",
+ "reqwest-middleware",
+ "reqwest-tracing",
  "serde",
  "serde_json",
  "sqlx",

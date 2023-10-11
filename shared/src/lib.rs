@@ -1,5 +1,7 @@
 pub mod auth;
+pub mod client;
 pub mod error;
+pub mod model;
 pub mod schema;
 pub mod telemetry;
 pub mod tracing;

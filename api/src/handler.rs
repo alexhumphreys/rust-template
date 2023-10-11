@@ -32,8 +32,6 @@ pub async fn get_account(
 ) -> Result<impl IntoResponse, Error> {
     let account = db::get_account(id.id, State(data)).await?;
     let json_response = serde_json::json!({
-        "status": "success",
-        "results": 1,
         "data": account
     });
     Ok(Json(json_response))
@@ -46,8 +44,6 @@ pub async fn search_account(
 ) -> Result<impl IntoResponse, Error> {
     let account = db::get_account_by_name(name.name, State(data)).await?;
     let json_response = serde_json::json!({
-        "status": "success",
-        "results": 1,
         "data": account
     });
     Ok(Json(json_response))
@@ -65,7 +61,7 @@ pub async fn create_account(
     Ok(Json(json_response))
 }
 
-#[debug_handler]
+//#[debug_handler]
 #[tracing::instrument]
 pub async fn put_account(
     Path(id): Path<PathId>,
@@ -74,7 +70,7 @@ pub async fn put_account(
 ) -> Result<impl IntoResponse, Error> {
     let account = db::put_account(id.id, payload, State(data)).await?;
     let json_response = serde_json::json!({
-    "data": account
+        "data": account
     });
     Ok(Json(json_response))
 }

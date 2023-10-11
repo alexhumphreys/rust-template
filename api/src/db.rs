@@ -1,11 +1,13 @@
-use crate::{
-    model::{AccountModel, ClientModel},
-    AppState,
-};
+use crate::AppState;
 use anyhow::{Context, Result};
 use axum::extract::{Query, State};
 use axum::http::StatusCode;
-use shared::{error::Error, schema, tracing::make_otel_db_span};
+use shared::{
+    error::Error,
+    model::{AccountModel, ClientModel},
+    schema,
+    tracing::make_otel_db_span,
+};
 use sqlx::Execute;
 use std::sync::Arc;
 use tracing::{self, Instrument};
