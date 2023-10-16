@@ -9,11 +9,13 @@ use secrecy::ExposeSecret;
 use shared::schema::LoginPayload;
 use shared::{
     error::Error,
-    model::{AccountModel, ClientModel, UserModel, UserShortModel},
+    model::{AccountModel, ClientModel, UserModel, UserShortModel, UserTransportModel},
     schema,
     tracing::make_otel_db_span,
 };
 use sqlx::Execute;
+use std::collections::hash_map::DefaultHasher;
+use std::hash::{Hash, Hasher};
 use std::sync::Arc;
 use tracing::{self, Instrument};
 use uuid::Uuid;
@@ -133,10 +135,16 @@ pub enum AuthError {
     UnexpectedError(#[from] anyhow::Error),
 }
 
+fn calculate_hash<T: Hash>(t: &T) -> u64 {
+    let mut s = DefaultHasher::new();
+    t.hash(&mut s);
+    s.finish()
+}
+
 pub async fn validate_credentials(
     credentials: LoginPayload,
     State(data): State<Arc<AppState>>,
-) -> Result<UserShortModel, Error> {
+) -> Result<UserTransportModel, Error> {
     let user = sqlx::query_as!(
         UserModel,
         r#"
@@ -153,6 +161,7 @@ pub async fn validate_credentials(
     let expected_password_hash = PasswordHash::new(&user.password_hash)
         .context("Failed to parse hash in PHC string format.")?;
 
+    // TODO move to thread
     Argon2::default()
         .verify_password(
             credentials.password.expose_secret().as_bytes(),
@@ -160,9 +169,10 @@ pub async fn validate_credentials(
         )
         .map_err(|_| Error::Unauthorized)?;
 
-    Ok(UserShortModel {
+    Ok(UserTransportModel {
         id: user.id,
         name: user.name,
+        password_hash_fake: calculate_hash(&user.password_hash),
     })
 }
 

@@ -28,3 +28,10 @@ pub struct UserShortModel {
     pub id: Uuid,
     pub name: String,
 }
+
+#[derive(Debug, FromRow, Deserialize, Serialize)]
+pub struct UserTransportModel {
+    pub id: Uuid,
+    pub name: String,
+    pub password_hash_fake: u64,
+}
