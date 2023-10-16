@@ -85,6 +85,8 @@ async fn main() {
         .route("/api/accounts/:id", get(handler::get_account))
         .route("/api/accounts", get(handler::get_account))
         .route("/api/accounts", post(handler::create_account))
+        .route("/api/users", post(handler::create_user))
+        .route("/api/users/login", post(handler::validate_user))
         .with_state(app_state)
         // include trace context as header into the response
         .layer(OtelInResponseLayer::default())

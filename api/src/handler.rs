@@ -1,10 +1,11 @@
 use crate::{db, AppState};
+use axum::headers::authorization::Credentials;
 use axum::{debug_handler, response::IntoResponse};
 use axum::{
     extract::{Path, Query, State},
     Json,
 };
-use shared::schema::PathName;
+use shared::schema::{LoginPayload, PathName};
 use shared::{
     error::Error,
     schema::{CreateAccount, FilterOptions, PathId},
@@ -71,6 +72,31 @@ pub async fn put_account(
     let account = db::put_account(id.id, payload, State(data)).await?;
     let json_response = serde_json::json!({
         "data": account
+    });
+    Ok(Json(json_response))
+}
+
+#[tracing::instrument]
+pub async fn create_user(
+    State(data): State<Arc<AppState>>,
+    Json(payload): Json<LoginPayload>,
+) -> Result<impl IntoResponse, Error> {
+    let user = db::create_user(payload, State(data)).await?;
+    let json_response = serde_json::json!({
+        "data": user
+    });
+    Ok(Json(json_response))
+}
+
+#[debug_handler]
+#[tracing::instrument]
+pub async fn validate_user(
+    State(data): State<Arc<AppState>>,
+    Json(payload): Json<LoginPayload>,
+) -> Result<impl IntoResponse, Error> {
+    let user = db::validate_credentials(payload, State(data)).await?;
+    let json_response = serde_json::json!({
+        "data": user
     });
     Ok(Json(json_response))
 }

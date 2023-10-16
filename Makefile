@@ -1,5 +1,5 @@
 DATE := $(shell date "+%y%m%d%H%M")
-DATABASE_URL ?= postgres://test-user:123@localhost:5432/test-db
+DATABASE_URL ?= postgres://test-user:123@127.0.0.1:5432/test-db
 DOCKER_NETWORK := rust-template
 
 db-connect:

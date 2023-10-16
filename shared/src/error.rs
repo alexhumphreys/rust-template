@@ -31,6 +31,9 @@ pub enum Error {
 
     #[error("An axum error occurred")]
     Axum(#[from] axum::Error),
+
+    #[error("An argon2 error occurred")]
+    Argon(#[from] argon2::Error),
 }
 
 impl Error {
@@ -60,6 +63,10 @@ impl Error {
                     StatusCode::INTERNAL_SERVER_ERROR,
                     "Internal server error".to_string(),
                 );
+            }
+            Error::Argon(e) => {
+                tracing::error!("Argon2 error: {:?}", e);
+                return (StatusCode::UNAUTHORIZED, "Auth error occurred".to_string());
             }
             Error::Sqlx(e) => match e {
                 sqlx::Error::RowNotFound => {

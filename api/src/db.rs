@@ -1,10 +1,15 @@
 use crate::AppState;
 use anyhow::{Context, Result};
+use argon2::password_hash::SaltString;
+use argon2::{Argon2, PasswordHash, PasswordHasher, PasswordVerifier};
 use axum::extract::{Query, State};
 use axum::http::StatusCode;
+use rand;
+use secrecy::ExposeSecret;
+use shared::schema::LoginPayload;
 use shared::{
     error::Error,
-    model::{AccountModel, ClientModel},
+    model::{AccountModel, ClientModel, UserModel, UserShortModel},
     schema,
     tracing::make_otel_db_span,
 };
@@ -118,4 +123,74 @@ pub async fn put_account(
         .await?;
 
     Ok(query_result)
+}
+
+#[derive(thiserror::Error, Debug)]
+pub enum AuthError {
+    #[error("Invalid credentials.")]
+    InvalidCredentials(#[source] anyhow::Error),
+    #[error(transparent)]
+    UnexpectedError(#[from] anyhow::Error),
+}
+
+pub async fn validate_credentials(
+    credentials: LoginPayload,
+    State(data): State<Arc<AppState>>,
+) -> Result<UserShortModel, Error> {
+    let user = sqlx::query_as!(
+        UserModel,
+        r#"
+        SELECT id, name, password_hash
+        FROM users
+        WHERE name = $1
+        "#,
+        credentials.name,
+    )
+    .fetch_one(&data.db)
+    .await
+    .map_err(|_| Error::Unauthorized)?;
+
+    let expected_password_hash = PasswordHash::new(&user.password_hash)
+        .context("Failed to parse hash in PHC string format.")?;
+
+    Argon2::default()
+        .verify_password(
+            credentials.password.expose_secret().as_bytes(),
+            &expected_password_hash,
+        )
+        .map_err(|_| Error::Unauthorized)?;
+
+    Ok(UserShortModel {
+        id: user.id,
+        name: user.name,
+    })
+}
+
+pub async fn create_user(
+    credentials: LoginPayload,
+    State(data): State<Arc<AppState>>,
+) -> Result<UserShortModel, Error> {
+    let password_hash = generate_hash(&credentials).await;
+
+    let user = sqlx::query_as!(
+        UserShortModel,
+        "INSERT INTO users(name, password_hash) VALUES ($1, $2) RETURNING id, name",
+        credentials.name,
+        password_hash
+    )
+    .fetch_one(&data.db)
+    .await
+    .context("Failed to create user.")?;
+
+    Ok(user)
+}
+
+async fn generate_hash(credentials: &LoginPayload) -> String {
+    let salt = SaltString::generate(&mut rand::thread_rng());
+    let password_hash = Argon2::default()
+        .hash_password(credentials.password.expose_secret().as_bytes(), &salt)
+        .unwrap()
+        .to_string();
+
+    password_hash
 }

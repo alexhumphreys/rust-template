@@ -1,3 +1,4 @@
+use secrecy::Secret;
 use serde::Deserialize;
 use uuid::Uuid;
 
@@ -26,4 +27,10 @@ pub struct PathName {
 pub struct CreateAccount {
     pub name: String,
     pub credential: String,
+}
+
+#[derive(Deserialize, Debug)]
+pub struct LoginPayload {
+    pub name: String,
+    pub password: Secret<String>,
 }
