@@ -30,6 +30,7 @@ use reqwest::{
 };
 use reqwest_middleware::{ClientBuilder, Extension};
 use reqwest_tracing::{OtelName, TracingMiddleware};
+use serde::Deserialize;
 use shared::{error::Error, telemetry::init_subscribers_custom, tracing::make_otel_reqwest_span};
 use std::{collections::HashMap, net::SocketAddr};
 use tracing::{self, info_span, instrument::WithSubscriber, Instrument, Span};
@@ -47,6 +48,7 @@ async fn main() {
     // build our application with some routes
     let app = Router::new()
         .route("/greet/:name", get(greet))
+        .route("/login", get(login).post(handle_login))
         .route("/hit/api", get(proxy_via_reqwest))
         // include trace context as header into the response
         .layer(OtelInResponseLayer::default())
@@ -62,8 +64,32 @@ async fn main() {
         .unwrap();
 }
 
+async fn login() -> impl IntoResponse {
+    let template = LoginTemplate {};
+    HtmlTemplate(template)
+}
+
+#[derive(Template)]
+#[template(path = "login.html")]
+struct LoginTemplate {}
+
 async fn greet(extract::Path(name): extract::Path<String>) -> impl IntoResponse {
     let template = HelloTemplate { name };
+    HtmlTemplate(template)
+}
+
+#[derive(Deserialize, Debug)]
+#[allow(dead_code)]
+struct Input {
+    name: String,
+    password: String,
+}
+
+async fn handle_login(extract::Form(input): extract::Form<Input>) -> impl IntoResponse {
+    tracing::error!("TODO REMOVE form input {:?}", input);
+    let template = HelloTemplate {
+        name: "tried login".to_string(),
+    };
     HtmlTemplate(template)
 }
 

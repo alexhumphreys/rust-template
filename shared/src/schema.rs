@@ -1,5 +1,5 @@
 use secrecy::Secret;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 #[derive(Deserialize, Debug, Default)]
@@ -33,4 +33,11 @@ pub struct CreateAccount {
 pub struct LoginPayload {
     pub name: String,
     pub password: Secret<String>,
+}
+
+// TODO hack hack
+#[derive(Deserialize, Debug, Serialize)]
+pub struct LoginPayload2 {
+    pub name: String,
+    pub password: String,
 }
