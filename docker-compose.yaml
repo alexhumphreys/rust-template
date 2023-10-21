@@ -51,7 +51,7 @@ services:
     depends_on:
       - api
     environment:
-      OTEL_SERVICE_NAME: api-service
+      OTEL_SERVICE_NAME: website
       OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: http://jaeger:4317
       RUST_LOG=info,axum_tracing_opentelemetry: info,otel=debug
       API_BASE_URL: "http://api:3000"

@@ -145,7 +145,7 @@ pub async fn validate_credentials(
     credentials: LoginPayload,
     State(data): State<Arc<AppState>>,
 ) -> Result<UserTransportModel, Error> {
-    let user = sqlx::query_as!(
+    let query = sqlx::query_as!(
         UserModel,
         r#"
         SELECT id, name, password_hash
@@ -153,10 +153,13 @@ pub async fn validate_credentials(
         WHERE name = $1
         "#,
         credentials.name,
-    )
-    .fetch_one(&data.db)
-    .await
-    .map_err(|_| Error::Unauthorized)?;
+    );
+    let sql = query.sql().clone();
+    let user = query
+        .fetch_one(&data.db)
+        .instrument(make_otel_db_span("SELECT", sql))
+        .await
+        .map_err(|_| Error::Unauthorized)?;
 
     let expected_password_hash = PasswordHash::new(&user.password_hash)
         .context("Failed to parse hash in PHC string format.")?;

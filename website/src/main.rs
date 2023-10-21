@@ -180,7 +180,6 @@ struct Input {
 
 #[debug_handler]
 async fn handle_login(extract::Form(input): extract::Form<Input>) -> Redirect {
-    tracing::error!("TODO REMOVE form input {:?}", input);
     let login_payload = LoginPayload2 {
         name: input.name,
         password: input.password,
