@@ -5173,6 +5173,7 @@ dependencies = [
  "askama",
  "axum",
  "axum-tracing-opentelemetry",
+ "axum_session",
  "axum_session_auth",
  "dotenvy",
  "opentelemetry",

@@ -19,7 +19,7 @@ pub struct DataBody<T> {
     pub data: T,
 }
 
-async fn get_clients(headers: Option<HeaderMap>) {
+pub async fn get_clients(headers: Option<HeaderMap>) {
     let api_base_url = std::env::var("API_BASE_URL").expect("Define API_BASE_URL");
 
     let client = ClientBuilder::new(reqwest::Client::new())
@@ -39,7 +39,10 @@ async fn get_clients(headers: Option<HeaderMap>) {
     }
 }
 
-async fn auth_user(payload: schema::LoginPayload2, headers: Option<HeaderMap>) {
+pub async fn auth_user(
+    payload: schema::LoginPayload2,
+    headers: Option<HeaderMap>,
+) -> Result<model::UserTransportModel, Error> {
     let api_base_url = std::env::var("API_BASE_URL").expect("Define API_BASE_URL");
 
     let client = ClientBuilder::new(reqwest::Client::new())
@@ -56,7 +59,13 @@ async fn auth_user(payload: schema::LoginPayload2, headers: Option<HeaderMap>) {
         .instrument(info_span!("some span"));
     let res = req.await.unwrap();
     match res.json::<DataBody<model::UserTransportModel>>().await {
-        Ok(json) => println!("{:#?}", json),
-        Err(e) => println!("Error: {}", e),
+        Ok(user) => {
+            println!("{:#?}", user);
+            Ok(user.data)
+        }
+        Err(e) => {
+            println!("Error: {}", e);
+            Err(Error::Unauthorized)
+        }
     }
 }
