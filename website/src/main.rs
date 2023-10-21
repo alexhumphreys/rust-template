@@ -3,6 +3,7 @@
 //! ```not_rust
 //! cargo run -p example-templates
 //! ```
+mod auth;
 
 use askama::Template;
 use axum::{
@@ -190,9 +191,6 @@ async fn handle_login(extract::Form(input): extract::Form<Input>) -> Redirect {
             tracing::error!("TODO REMOVE error {:?}", e);
             return Redirect::to("/login");
         }
-    };
-    let template = HelloTemplate {
-        name: format!("tried login for user: {:?}", user),
     };
     Redirect::to("/perm")
 }
