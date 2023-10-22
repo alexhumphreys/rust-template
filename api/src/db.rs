@@ -175,7 +175,6 @@ pub async fn validate_credentials(
     Ok(UserTransportModel {
         id: user.id,
         name: user.name,
-        password_hash_fake: calculate_hash(&user.password_hash),
     })
 }
 
@@ -206,4 +205,22 @@ async fn generate_hash(credentials: &LoginPayload) -> String {
         .to_string();
 
     password_hash
+}
+
+pub async fn get_user(
+    user_id: Uuid,
+    State(data): State<Arc<AppState>>,
+) -> Result<UserTransportModel, Error> {
+    let query = sqlx::query_as!(
+        UserTransportModel,
+        "SELECT id, name FROM users WHERE id = $1",
+        user_id
+    );
+    let sql = query.sql().clone();
+    let user = query
+        .fetch_one(&data.db)
+        .instrument(make_otel_db_span("SELECT", sql))
+        .await
+        .context("Failed to get user.")?;
+    Ok(user)
 }

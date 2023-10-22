@@ -12,11 +12,13 @@ use axum_session_auth::{
     Auth, AuthConfig, AuthSession, AuthSessionLayer, Authentication, HasPermission, Rights,
 };
 use serde::{Deserialize, Serialize};
+use shared::client;
 use std::{collections::HashSet, sync::Arc};
+use uuid::Uuid;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct User {
-    pub id: i32,
+    pub id: Uuid,
     pub anonymous: bool,
     pub username: String,
     pub permissions: HashSet<String>,
@@ -29,7 +31,7 @@ impl Default for User {
         permissions.insert("Category::View".to_owned());
 
         Self {
-            id: 1,
+            id: uuid::Uuid::new_v4(),
             anonymous: true,
             username: "Guest".into(),
             permissions,
@@ -41,23 +43,36 @@ impl Default for User {
 type NullPool = Arc<Option<()>>;
 
 #[async_trait]
-impl Authentication<User, i64, NullPool> for User {
-    async fn load_user(userid: i64, _pool: Option<&NullPool>) -> Result<User, anyhow::Error> {
-        if userid == 1 {
-            Ok(User::default())
-        } else {
-            let mut permissions = HashSet::new();
+impl Authentication<User, Option<Uuid>, NullPool> for User {
+    async fn load_user(
+        userid: Option<Uuid>,
+        _pool: Option<&NullPool>,
+    ) -> Result<User, anyhow::Error> {
+        let user = match userid {
+            Some(id) => {
+                tracing::info!("Looking up user {}", id);
+                match client::get_user(id, None).await {
+                    Ok(user) => user,
+                    Err(e) => {
+                        tracing::error!("Error: {}", e);
+                        return Ok(User::default());
+                    }
+                }
+            }
+            None => return Ok(User::default()),
+        };
+        tracing::info!("found user {}", user.id);
+        let mut permissions = HashSet::new();
 
-            permissions.insert("Category::View".to_owned());
-            permissions.insert("Admin::View".to_owned());
+        permissions.insert("Category::View".to_owned());
+        permissions.insert("Admin::View".to_owned());
 
-            Ok(User {
-                id: 2,
-                anonymous: false,
-                username: "Test".to_owned(),
-                permissions,
-            })
-        }
+        Ok(User {
+            id: user.id,
+            anonymous: false,
+            username: user.name,
+            permissions,
+        })
     }
 
     fn is_authenticated(&self) -> bool {
@@ -81,26 +96,17 @@ impl HasPermission<NullPool> for User {
 }
 
 pub async fn session_auth<B>(
-    // run the `TypedHeader` extractor
-    auth: AuthSession<User, i64, SessionNullPool, NullPool>,
+    auth: AuthSession<User, Option<Uuid>, SessionNullPool, NullPool>,
     // you can also add more extractors here but the last
     // extractor must implement `FromRequest` which
     // `Request` does
     request: Request<B>,
     next: Next<B>,
 ) -> Result<Response, StatusCode> {
-    todo!()
-    /*
-    if token_is_valid(auth.token()) {
+    if auth.is_anonymous() {
+        Err(StatusCode::UNAUTHORIZED)
+    } else {
         let response = next.run(request).await;
         Ok(response)
-    } else {
-        Err(StatusCode::UNAUTHORIZED)
     }
-    */
-}
-
-fn token_is_valid(token: &str) -> bool {
-    tracing::info!("token provided: {}", token);
-    return true;
 }

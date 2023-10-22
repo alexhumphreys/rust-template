@@ -14,12 +14,12 @@ use reqwest::{
     header::USER_AGENT,
     header::{HeaderMap, HeaderName, HeaderValue},
 };
-use reqwest_middleware::{ClientBuilder, Extension};
-use reqwest_tracing::{OtelName, TracingMiddleware};
+use reqwest_middleware::{ClientBuilder, ClientWithMiddleware, Extension};
+use reqwest_tracing::{OtelName, ReqwestOtelSpanBackend, TracingMiddleware};
 use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use tracing::{self, info_span, instrument::WithSubscriber, Instrument, Span};
+use tracing::{self, info_span, instrument::WithSubscriber, subscriber, Instrument, Span};
 use tracing_opentelemetry::OpenTelemetrySpanExt;
 use tracing_opentelemetry_instrumentation_sdk::find_current_trace_id;
 
@@ -27,6 +27,16 @@ use tracing_opentelemetry_instrumentation_sdk::find_current_trace_id;
 #[allow(non_snake_case)]
 pub struct DataBody<T> {
     pub data: T,
+}
+
+fn get_client() -> ClientWithMiddleware {
+    let client = ClientBuilder::new(reqwest::Client::new())
+        // Trace HTTP requests. See the tracing crate to make use of these traces.
+        .with_init(Extension(OtelName("my-client".into())))
+        .with(TracingMiddleware::default())
+        .build();
+
+    client
 }
 
 fn get_trace_info() -> HeaderMap {
@@ -91,9 +101,32 @@ pub async fn auth_user(
         .post(format!("{}/api/users/login", api_base_url))
         .json(&payload)
         .headers(headers.unwrap_or_default())
-        .headers(trace_headers)
-        .send()
-        .instrument(info_span!("some span"));
+        .send();
+    let res = req.await.unwrap();
+    match res.json::<DataBody<model::UserTransportModel>>().await {
+        Ok(user) => {
+            println!("{:#?}", user);
+            Ok(user.data)
+        }
+        Err(e) => {
+            println!("Error: {}", e);
+            Err(Error::Unauthorized)
+        }
+    }
+}
+
+#[tracing::instrument]
+pub async fn get_user(
+    id: uuid::Uuid,
+    headers: Option<HeaderMap>,
+) -> Result<model::UserTransportModel, Error> {
+    let client = get_client();
+    let api_base_url = std::env::var("API_BASE_URL").expect("Define API_BASE_URL");
+
+    let req = client
+        .get(format!("{}/api/users/{}", api_base_url, id))
+        .headers(headers.unwrap_or_default())
+        .send();
     let res = req.await.unwrap();
     match res.json::<DataBody<model::UserTransportModel>>().await {
         Ok(user) => {

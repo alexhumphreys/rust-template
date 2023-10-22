@@ -5189,6 +5189,7 @@ dependencies = [
  "tracing-opentelemetry 0.21.0",
  "tracing-opentelemetry-instrumentation-sdk",
  "tracing-subscriber",
+ "uuid",
 ]
 
 [[package]]

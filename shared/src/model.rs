@@ -33,5 +33,4 @@ pub struct UserShortModel {
 pub struct UserTransportModel {
     pub id: Uuid,
     pub name: String,
-    pub password_hash_fake: u64,
 }

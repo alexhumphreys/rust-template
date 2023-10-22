@@ -100,3 +100,14 @@ pub async fn validate_user(
     });
     Ok(Json(json_response))
 }
+
+pub async fn get_user(
+    Path(id): Path<PathId>,
+    State(data): State<Arc<AppState>>,
+) -> Result<impl IntoResponse, Error> {
+    let user = db::get_user(id.id, State(data)).await?;
+    let json_response = serde_json::json!({
+        "data": user
+    });
+    Ok(Json(json_response))
+}

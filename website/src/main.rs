@@ -12,6 +12,7 @@ use axum::{
     debug_handler, extract,
     extract::State,
     http::{Method, StatusCode},
+    middleware,
     response::{Html, IntoResponse, Json, Redirect, Response},
     routing::get,
     Router,
@@ -46,72 +47,13 @@ use std::{collections::HashMap, collections::HashSet, net::SocketAddr};
 use tracing::{self, info_span, instrument::WithSubscriber, Instrument, Span};
 use tracing_opentelemetry::OpenTelemetrySpanExt;
 use tracing_opentelemetry_instrumentation_sdk::find_current_trace_id;
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct User {
-    pub id: i32,
-    pub anonymous: bool,
-    pub username: String,
-    pub permissions: HashSet<String>,
-}
-
-impl Default for User {
-    fn default() -> Self {
-        let mut permissions = HashSet::new();
-
-        permissions.insert("Category::View".to_owned());
-
-        Self {
-            id: 1,
-            anonymous: true,
-            username: "Guest".into(),
-            permissions,
-        }
-    }
-}
+use uuid::Uuid;
 
 // We place our Type within a Arc<> so we can send it across async threads.
 type NullPool = Arc<Option<()>>;
-
-#[async_trait]
-impl Authentication<User, i64, NullPool> for User {
-    async fn load_user(userid: i64, _pool: Option<&NullPool>) -> Result<User, anyhow::Error> {
-        if userid == 1 {
-            Ok(User::default())
-        } else {
-            let mut permissions = HashSet::new();
-
-            permissions.insert("Category::View".to_owned());
-            permissions.insert("Admin::View".to_owned());
-
-            Ok(User {
-                id: 2,
-                anonymous: false,
-                username: "Test".to_owned(),
-                permissions,
-            })
-        }
-    }
-
-    fn is_authenticated(&self) -> bool {
-        !self.anonymous
-    }
-
-    fn is_active(&self) -> bool {
-        !self.anonymous
-    }
-
-    fn is_anonymous(&self) -> bool {
-        self.anonymous
-    }
-}
-
-#[async_trait]
-impl HasPermission<NullPool> for User {
-    async fn has(&self, perm: &str, _pool: &Option<&NullPool>) -> bool {
-        self.permissions.contains(perm)
-    }
-}
+type AuthIdType = Option<Uuid>;
+type AuthSessionType = AuthSession<auth::User, AuthIdType, SessionNullPool, NullPool>;
+type AuthSessionLayerType = AuthSessionLayer<auth::User, AuthIdType, SessionNullPool, NullPool>;
 
 #[tokio::main]
 async fn main() {
@@ -124,19 +66,18 @@ async fn main() {
     let session_store = SessionStore::<SessionNullPool>::new(None, session_config)
         .await
         .unwrap();
-    let auth_config = AuthConfig::<i64>::default();
+    let auth_config = AuthConfig::<Option<Uuid>>::default();
     let nullpool = Arc::new(Option::None);
 
     // build our application with some routes
     let app = Router::new()
+        .route("/greet-protected", get(greet_protected))
+        .route_layer(middleware::from_fn(auth::session_auth))
         .route("/greet/:name", get(greet))
         .route("/login", get(login).post(handle_login))
         .route("/login2", get(login2))
         .route("/perm", get(perm))
-        .layer(
-            AuthSessionLayer::<User, i64, SessionNullPool, NullPool>::new(Some(nullpool))
-                .with_config(auth_config),
-        )
+        .layer(AuthSessionLayerType::new(Some(nullpool)).with_config(auth_config))
         .layer(SessionLayer::new(session_store))
         .route("/hit/api", get(proxy_via_reqwest))
         // include trace context as header into the response
@@ -153,8 +94,7 @@ async fn main() {
         .unwrap();
 }
 
-async fn login2(auth: AuthSession<User, i64, SessionNullPool, NullPool>) -> String {
-    auth.login_user(2);
+async fn login2(auth: AuthSessionType) -> String {
     "You are logged in as a User please try /perm to check permissions".to_owned()
 }
 
@@ -166,6 +106,14 @@ async fn login() -> impl IntoResponse {
 #[derive(Template)]
 #[template(path = "login.html")]
 struct LoginTemplate {}
+
+async fn greet_protected(auth: AuthSessionType) -> impl IntoResponse {
+    let current_user = auth.current_user.clone().unwrap_or_default();
+    let template = HelloTemplate {
+        name: current_user.username,
+    };
+    HtmlTemplate(template)
+}
 
 async fn greet(extract::Path(name): extract::Path<String>) -> impl IntoResponse {
     let template = HelloTemplate { name };
@@ -180,19 +128,24 @@ struct Input {
 }
 
 #[debug_handler]
-async fn handle_login(extract::Form(input): extract::Form<Input>) -> Redirect {
+async fn handle_login(
+    auth: AuthSessionType,
+    extract::Form(input): extract::Form<Input>,
+) -> Redirect {
     let login_payload = LoginPayload2 {
         name: input.name,
         password: input.password,
     };
-    let user = match client::auth_user(login_payload, None).await {
-        Ok(user) => user,
+    match client::auth_user(login_payload, None).await {
+        Ok(user) => {
+            auth.login_user(Some(user.id));
+            Redirect::to("/perm")
+        }
         Err(e) => {
             tracing::error!("TODO REMOVE error {:?}", e);
-            return Redirect::to("/login");
+            Redirect::to("/login")
         }
-    };
-    Redirect::to("/perm")
+    }
 }
 
 #[derive(Template)]
@@ -259,11 +212,11 @@ async fn proxy_via_reqwest() -> Result<impl IntoResponse, Error> {
     Ok(Json(text).into_response())
 }
 
-async fn perm(method: Method, auth: AuthSession<User, i64, SessionNullPool, NullPool>) -> String {
+async fn perm(method: Method, auth: AuthSessionType) -> String {
     let current_user = auth.current_user.clone().unwrap_or_default();
 
     //lets check permissions only and not worry about if they are anon or not
-    if !Auth::<User, i64, NullPool>::build([Method::GET], false)
+    if !Auth::<auth::User, Option<Uuid>, NullPool>::build([Method::GET], false)
         .requires(Rights::any([
             Rights::permission("Category::View"),
             Rights::permission("Admin::View"),
