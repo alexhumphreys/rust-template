@@ -27,3 +27,4 @@ axum_session_auth = "0.7.0"
 serde = "1.0.189"
 axum_session = "0.7.0"
 tower-layer = "0.3.2"
+tower-http = {version = "0.4.4", features = ["fs"]}

@@ -11,7 +11,7 @@ use serde::Deserialize;
 use shared::{client, schema::LoginPayload2};
 use uuid::Uuid;
 
-async fn login() -> impl IntoResponse {
+pub async fn login() -> impl IntoResponse {
     let template = LoginTemplate {};
     HtmlTemplate(template)
 }
@@ -28,20 +28,20 @@ pub async fn greet_protected(auth: AuthSessionType) -> impl IntoResponse {
     HtmlTemplate(template)
 }
 
-async fn greet(extract::Path(name): extract::Path<String>) -> impl IntoResponse {
+pub async fn greet(extract::Path(name): extract::Path<String>) -> impl IntoResponse {
     let template = HelloTemplate { name };
     HtmlTemplate(template)
 }
 
 #[derive(Deserialize, Debug)]
 #[allow(dead_code)]
-struct Input {
+pub struct Input {
     name: String,
     password: String,
 }
 
 #[debug_handler]
-async fn handle_login(
+pub async fn handle_login(
     auth: AuthSessionType,
     extract::Form(input): extract::Form<Input>,
 ) -> Redirect {
@@ -85,7 +85,7 @@ where
     }
 }
 
-async fn perm(method: Method, auth: AuthSessionType) -> String {
+pub async fn perm(method: Method, auth: AuthSessionType) -> String {
     let current_user = auth.current_user.clone().unwrap_or_default();
 
     //lets check permissions only and not worry about if they are anon or not

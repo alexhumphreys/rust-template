@@ -1,16 +1,6 @@
-use axum::{
-    async_trait,
-    extract::TypedHeader,
-    headers::authorization::{Authorization, Bearer},
-    http::Request,
-    http::StatusCode,
-    middleware::Next,
-    response::Response,
-};
-use axum_session::{Session, SessionConfig, SessionLayer, SessionNullPool, SessionStore};
-use axum_session_auth::{
-    Auth, AuthConfig, AuthSession, AuthSessionLayer, Authentication, HasPermission, Rights,
-};
+use axum::{async_trait, http::Request, http::StatusCode, middleware::Next, response::Response};
+use axum_session::{SessionConfig, SessionLayer, SessionNullPool, SessionStore};
+use axum_session_auth::{AuthConfig, AuthSession, AuthSessionLayer, Authentication, HasPermission};
 use serde::{Deserialize, Serialize};
 use shared::client;
 use std::{collections::HashSet, sync::Arc};
@@ -24,10 +14,6 @@ pub struct User {
     pub permissions: HashSet<String>,
 }
 
-pub type NullPool = Arc<Option<()>>;
-pub type AuthIdType = Option<Uuid>;
-pub type AuthSessionType = AuthSession<User, AuthIdType, SessionNullPool, NullPool>;
-
 impl Default for User {
     fn default() -> Self {
         let mut permissions = HashSet::new();
@@ -35,7 +21,7 @@ impl Default for User {
         permissions.insert("Category::View".to_owned());
 
         Self {
-            id: uuid::Uuid::new_v4(),
+            id: Uuid::parse_str("b416d7eb-7c5b-4133-96a4-49c860cea964").unwrap(),
             anonymous: true,
             username: "Guest".into(),
             permissions,
@@ -44,6 +30,10 @@ impl Default for User {
 }
 
 // We place our Type within a Arc<> so we can send it across async threads.
+pub type NullPool = Arc<Option<()>>;
+pub type AuthIdType = Option<Uuid>;
+pub type AuthSessionType = AuthSession<User, AuthIdType, SessionNullPool, NullPool>;
+type AuthSessionLayerType = AuthSessionLayer<User, AuthIdType, SessionNullPool, NullPool>;
 
 #[async_trait]
 impl Authentication<User, Option<Uuid>, NullPool> for User {
@@ -112,4 +102,15 @@ pub async fn session_auth<B>(
         let response = next.run(request).await;
         Ok(response)
     }
+}
+
+pub async fn make_auth_session_layer() -> (AuthSessionLayerType, SessionLayer<SessionNullPool>) {
+    let session_config = SessionConfig::default().with_table_name("sessions_table");
+    let session_store = SessionStore::<SessionNullPool>::new(None, session_config)
+        .await
+        .unwrap();
+    let auth_config = AuthConfig::<Option<Uuid>>::default();
+    let nullpool = Arc::new(Option::None);
+    let layer = AuthSessionLayerType::new(Some(nullpool)).with_config(auth_config);
+    (layer, SessionLayer::new(session_store))
 }
