@@ -4,6 +4,8 @@
 //! cargo run -p example-templates
 //! ```
 mod auth;
+mod handlers;
+mod protected_routes;
 
 use askama::Template;
 use axum::{
@@ -44,6 +46,7 @@ use shared::{
 };
 use std::sync::Arc;
 use std::{collections::HashMap, collections::HashSet, net::SocketAddr};
+use tower_layer::Layer;
 use tracing::{self, info_span, instrument::WithSubscriber, Instrument, Span};
 use tracing_opentelemetry::OpenTelemetrySpanExt;
 use tracing_opentelemetry_instrumentation_sdk::find_current_trace_id;
@@ -61,25 +64,19 @@ async fn main() {
 
     init_subscribers_custom().ok();
 
-    let session_config = SessionConfig::default().with_table_name("sessions_table");
-    // create SessionStore and initiate the database tables
-    let session_store = SessionStore::<SessionNullPool>::new(None, session_config)
-        .await
-        .unwrap();
-    let auth_config = AuthConfig::<Option<Uuid>>::default();
-    let nullpool = Arc::new(Option::None);
-
-    // build our application with some routes
-    let app = Router::new()
-        .route("/greet-protected", get(greet_protected))
-        .route_layer(middleware::from_fn(auth::session_auth))
+    let public = Router::new()
         .route("/greet/:name", get(greet))
         .route("/login", get(login).post(handle_login))
-        .route("/login2", get(login2))
-        .route("/perm", get(perm))
-        .layer(AuthSessionLayerType::new(Some(nullpool)).with_config(auth_config))
-        .layer(SessionLayer::new(session_store))
         .route("/hit/api", get(proxy_via_reqwest))
+        .route("/perm", get(perm));
+
+    let (auth_session_layer, session_layer) = make_auth_session_layer().await;
+    // build our application with some routes
+    let app = Router::new()
+        .merge(protected_routes::router())
+        .merge(public)
+        .layer(auth_session_layer)
+        .layer(session_layer)
         // include trace context as header into the response
         .layer(OtelInResponseLayer::default())
         //start OpenTelemetry trace on incoming request
@@ -94,8 +91,15 @@ async fn main() {
         .unwrap();
 }
 
-async fn login2(auth: AuthSessionType) -> String {
-    "You are logged in as a User please try /perm to check permissions".to_owned()
+async fn make_auth_session_layer() -> (AuthSessionLayerType, SessionLayer<SessionNullPool>) {
+    let session_config = SessionConfig::default().with_table_name("sessions_table");
+    let session_store = SessionStore::<SessionNullPool>::new(None, session_config)
+        .await
+        .unwrap();
+    let auth_config = AuthConfig::<Option<Uuid>>::default();
+    let nullpool = Arc::new(Option::None);
+    let layer = AuthSessionLayerType::new(Some(nullpool)).with_config(auth_config);
+    (layer, SessionLayer::new(session_store))
 }
 
 async fn login() -> impl IntoResponse {
@@ -106,14 +110,6 @@ async fn login() -> impl IntoResponse {
 #[derive(Template)]
 #[template(path = "login.html")]
 struct LoginTemplate {}
-
-async fn greet_protected(auth: AuthSessionType) -> impl IntoResponse {
-    let current_user = auth.current_user.clone().unwrap_or_default();
-    let template = HelloTemplate {
-        name: current_user.username,
-    };
-    HtmlTemplate(template)
-}
 
 async fn greet(extract::Path(name): extract::Path<String>) -> impl IntoResponse {
     let template = HelloTemplate { name };

@@ -5185,6 +5185,7 @@ dependencies = [
  "shared",
  "thiserror",
  "tokio",
+ "tower-layer",
  "tracing",
  "tracing-opentelemetry 0.21.0",
  "tracing-opentelemetry-instrumentation-sdk",

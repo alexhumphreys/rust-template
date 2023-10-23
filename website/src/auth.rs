@@ -24,6 +24,10 @@ pub struct User {
     pub permissions: HashSet<String>,
 }
 
+pub type NullPool = Arc<Option<()>>;
+pub type AuthIdType = Option<Uuid>;
+pub type AuthSessionType = AuthSession<User, AuthIdType, SessionNullPool, NullPool>;
+
 impl Default for User {
     fn default() -> Self {
         let mut permissions = HashSet::new();
@@ -40,7 +44,6 @@ impl Default for User {
 }
 
 // We place our Type within a Arc<> so we can send it across async threads.
-type NullPool = Arc<Option<()>>;
 
 #[async_trait]
 impl Authentication<User, Option<Uuid>, NullPool> for User {
