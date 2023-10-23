@@ -1,0 +1,28 @@
+{% extends "base.html" %} {% block title %}Index{% endblock %} {% block head %}
+<style></style>
+{% endblock %} {% block content %}
+<h1>Header 1</h1>
+<h2>Header 2</h2>
+<h3>Header 3</h3>
+<h4>Header 4</h4>
+<h5>Header 5</h5>
+<h6>Header 6</h6>
+<p>This is a paragraph.</p>
+<form> 
+  <label for="text-input">
+    Text input:
+    <input type="text" name="text-input" />
+  </label>
+
+  <label for="password-input">
+    Password input:
+    <input type="password" name="password-input" />
+  </label>
+  <label for="radio-input">
+    Text input:
+    <input type="radio" name="radio-input" />
+  </label>
+
+  <input type="submit" value="submit-button" />
+</form>
+{% call super() %} {% endblock %}

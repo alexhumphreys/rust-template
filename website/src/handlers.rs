@@ -38,6 +38,15 @@ pub async fn greet(extract::Path(name): extract::Path<String>) -> impl IntoRespo
     template
 }
 
+#[derive(Template)]
+#[template(path = "styles.html")]
+struct StylesTemplate {}
+
+pub async fn styles() -> impl IntoResponse {
+    let template = StylesTemplate {};
+    template
+}
+
 #[derive(Deserialize, Debug)]
 #[allow(dead_code)]
 pub struct Input {
