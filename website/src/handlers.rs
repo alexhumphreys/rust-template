@@ -3,34 +3,39 @@ use crate::auth::{AuthSessionType, NullPool, User};
 use askama::Template;
 use axum::{
     debug_handler, extract,
-    http::{Method, StatusCode},
-    response::{Html, IntoResponse, Redirect, Response},
+    http::Method,
+    response::{IntoResponse, Redirect},
 };
 use axum_session_auth::{Auth, Rights};
 use serde::Deserialize;
 use shared::{client, schema::LoginPayload2};
 use uuid::Uuid;
 
-pub async fn login() -> impl IntoResponse {
-    let template = LoginTemplate {};
-    HtmlTemplate(template)
-}
-
 #[derive(Template)]
 #[template(path = "login.html")]
 struct LoginTemplate {}
 
+pub async fn login() -> impl IntoResponse {
+    let template = LoginTemplate {};
+    template
+}
+
+#[derive(Template)]
+#[template(path = "hello.html")]
+struct HelloTemplate {
+    name: String,
+}
 pub async fn greet_protected(auth: AuthSessionType) -> impl IntoResponse {
     let current_user = auth.current_user.clone().unwrap_or_default();
     let template = HelloTemplate {
         name: current_user.username,
     };
-    HtmlTemplate(template)
+    template
 }
 
 pub async fn greet(extract::Path(name): extract::Path<String>) -> impl IntoResponse {
     let template = HelloTemplate { name };
-    HtmlTemplate(template)
+    template
 }
 
 #[derive(Deserialize, Debug)]
@@ -57,30 +62,6 @@ pub async fn handle_login(
         Err(e) => {
             tracing::error!("TODO REMOVE error {:?}", e);
             Redirect::to("/login")
-        }
-    }
-}
-
-#[derive(Template)]
-#[template(path = "hello.html")]
-struct HelloTemplate {
-    name: String,
-}
-
-struct HtmlTemplate<T>(T);
-
-impl<T> IntoResponse for HtmlTemplate<T>
-where
-    T: Template,
-{
-    fn into_response(self) -> Response {
-        match self.0.render() {
-            Ok(html) => Html(html).into_response(),
-            Err(err) => (
-                StatusCode::INTERNAL_SERVER_ERROR,
-                format!("Failed to render template. Error: {}", err),
-            )
-                .into_response(),
         }
     }
 }
