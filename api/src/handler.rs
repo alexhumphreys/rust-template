@@ -1,5 +1,6 @@
+use crate::repository::Repositories;
+use crate::user_repository::UserRepo;
 use crate::{db, AppState};
-use axum::headers::authorization::Credentials;
 use axum::{debug_handler, response::IntoResponse};
 use axum::{
     extract::{Path, Query, State},
@@ -81,7 +82,7 @@ pub async fn create_user(
     State(data): State<Arc<AppState>>,
     Json(payload): Json<LoginPayload>,
 ) -> Result<impl IntoResponse, Error> {
-    let user = db::create_user(payload, State(data)).await?;
+    let user = data.repo.user().create_user(payload).await?;
     let json_response = serde_json::json!({
         "data": user
     });
@@ -94,7 +95,7 @@ pub async fn validate_user(
     State(data): State<Arc<AppState>>,
     Json(payload): Json<LoginPayload>,
 ) -> Result<impl IntoResponse, Error> {
-    let user = db::validate_credentials(payload, State(data)).await?;
+    let user = data.repo.user().validate_credentials(payload).await?;
     let json_response = serde_json::json!({
         "data": user
     });
@@ -105,7 +106,7 @@ pub async fn get_user(
     Path(id): Path<PathId>,
     State(data): State<Arc<AppState>>,
 ) -> Result<impl IntoResponse, Error> {
-    let user = db::get_user(id.id, State(data)).await?;
+    let user = data.repo.user().get_user(id.id).await?;
     let json_response = serde_json::json!({
         "data": user
     });

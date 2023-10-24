@@ -1,5 +1,8 @@
 mod db;
+mod db_init;
 mod handler;
+mod repository;
+mod user_repository;
 
 use axum::{
     middleware,
@@ -21,6 +24,7 @@ use std::sync::Arc;
 #[derive(Debug)]
 pub struct AppState {
     db: Pool<Postgres>,
+    repo: repository::RepoImpls,
 }
 
 #[derive(OaSchema, Deserialize)]
@@ -49,25 +53,11 @@ async fn main() {
 
     let metrics = HttpMetricsLayerBuilder::new().build();
 
-    let database_url = std::env::var("DATABASE_URL").expect("DATABASE_URL must be set");
-    let pool = match PgPoolOptions::new()
-        .max_connections(10)
-        .acquire_timeout(std::time::Duration::from_secs(2))
-        .test_before_acquire(false)
-        .connect(&database_url)
-        .await
-    {
-        Ok(pool) => {
-            tracing::info!("✅Connection to the database is successful!");
-            pool
-        }
-        Err(err) => {
-            tracing::error!("🔥 Failed to connect to the database: {:?}", err);
-            std::process::exit(1);
-        }
-    };
-
-    let app_state = Arc::new(AppState { db: pool.clone() });
+    let pool = db_init::db_connect().await;
+    let app_state = Arc::new(AppState {
+        db: pool.clone(),
+        repo: repository::create_repositories().await,
+    });
 
     let server = Server::axum()
         .post("/send-code", send_code)
