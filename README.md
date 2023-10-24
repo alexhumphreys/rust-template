@@ -7,4 +7,5 @@
 - for [combining users and webauthn](https://github.com/66OJ66/axum_webauthn/blob/main/src/auth.rs)
 - [for adding otel tracing](https://stackoverflow.com/questions/68972213/how-to-add-tracing-to-a-rust-microservice)
 - [for auth maybe this library](https://github.com/AscendingCreations/AxumSessionAuth/blob/main/examples/NoPoolType/src/main.rs)
-- https://toolcool.org/random-favicon-generator
+- [random-favicon-generator](https://toolcool.org/random-favicon-generator)
+- [for mocking db for testing](https://github.com/net3i/rust-axum-sqlx-sample)
