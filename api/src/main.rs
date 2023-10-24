@@ -1,7 +1,10 @@
 mod db;
 mod db_init;
 mod handler;
-mod repository;
+mod repositories;
+#[cfg(test)]
+mod tests;
+mod usecases;
 mod user_repository;
 
 use axum::{
@@ -24,7 +27,7 @@ use std::sync::Arc;
 #[derive(Debug)]
 pub struct AppState {
     db: Pool<Postgres>,
-    repo: repository::RepoImpls,
+    repo: repositories::RepoImpls,
 }
 
 #[derive(OaSchema, Deserialize)]
@@ -56,7 +59,7 @@ async fn main() {
     let pool = db_init::db_connect().await;
     let app_state = Arc::new(AppState {
         db: pool.clone(),
-        repo: repository::create_repositories().await,
+        repo: repositories::create_repositories().await,
     });
 
     let server = Server::axum()
@@ -115,7 +118,7 @@ async fn four_handler() -> impl IntoResponse {
 }
 
 #[cfg(test)]
-mod tests {
+mod tests1 {
     #[test]
     fn it_works() {
         let result = 2 + 2;

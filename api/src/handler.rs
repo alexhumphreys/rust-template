@@ -1,4 +1,4 @@
-use crate::repository::Repositories;
+use crate::repositories::Repositories;
 use crate::user_repository::UserRepo;
 use crate::{db, AppState};
 use axum::{debug_handler, response::IntoResponse};

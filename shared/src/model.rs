@@ -29,7 +29,7 @@ pub struct UserShortModel {
     pub name: String,
 }
 
-#[derive(Debug, FromRow, Deserialize, Serialize)]
+#[derive(Debug, FromRow, Deserialize, Serialize, PartialEq, Eq)]
 pub struct UserTransportModel {
     pub id: Uuid,
     pub name: String,
