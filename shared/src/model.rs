@@ -7,6 +7,8 @@ use uuid::Uuid;
 pub struct ClientModel {
     pub id: Uuid,
     pub name: String,
+    pub user_id: Uuid,
+    pub token: String,
 }
 
 #[derive(Debug, FromRow, Deserialize, Serialize)]

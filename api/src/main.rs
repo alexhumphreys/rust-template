@@ -1,3 +1,4 @@
+mod client_repository;
 mod db;
 mod db_init;
 mod handler;
@@ -8,7 +9,6 @@ mod usecases;
 mod user_repository;
 
 use axum::{
-    middleware,
     response::{Html, IntoResponse},
     routing::{get, post, put},
     Json, Router,
@@ -19,8 +19,8 @@ use dotenvy;
 use oasgen::{openapi, OaSchema, Server};
 use serde::{Deserialize, Serialize};
 use shared;
-use shared::{auth, telemetry::init_subscribers_custom};
-use sqlx::{postgres::PgPoolOptions, Pool, Postgres};
+use shared::telemetry::init_subscribers_custom;
+use sqlx::{Pool, Postgres};
 use std::net::SocketAddr;
 use std::sync::Arc;
 
@@ -72,7 +72,6 @@ async fn main() {
         .route("/", get(handler))
         .route("/api/healthz", get(health_checker_handler))
         //.route_layer(middleware::from_fn(auth::auth))
-        .route("/404", get(four_handler))
         .route("/api/clients", get(handler::get_client_handler))
         .route("/api/accounts/:id", put(handler::put_account))
         .route("/api/accounts/:id", get(handler::get_account))
@@ -99,11 +98,8 @@ async fn main() {
 }
 
 async fn health_checker_handler() -> impl IntoResponse {
-    const MESSAGE: &str = "Simple CRUD API with Rust, SQLX, Postgres,and Axum";
-
     let json_response = serde_json::json!({
         "status": "success",
-        "message": MESSAGE
     });
 
     Json(json_response)
@@ -111,17 +107,4 @@ async fn health_checker_handler() -> impl IntoResponse {
 
 async fn handler() -> Html<&'static str> {
     Html("<h1>Hello, World!</h1>")
-}
-
-async fn four_handler() -> impl IntoResponse {
-    shared::error::Error::NotFound
-}
-
-#[cfg(test)]
-mod tests1 {
-    #[test]
-    fn it_works() {
-        let result = 2 + 2;
-        assert_eq!(result, 4);
-    }
 }

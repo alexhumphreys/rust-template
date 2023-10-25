@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT * FROM clients ORDER by id LIMIT $1 OFFSET $2",
+  "query": "SELECT * FROM clients WHERE token = $1",
   "describe": {
     "columns": [
       {
@@ -26,8 +26,7 @@
     ],
     "parameters": {
       "Left": [
-        "Int8",
-        "Int8"
+        "Text"
       ]
     },
     "nullable": [
@@ -37,5 +36,5 @@
       false
     ]
   },
-  "hash": "8e38a6a1134bfaac4b9eead4bfc771ca1bc10d5fcacdff53252d5d0e019caf69"
+  "hash": "1dba08f58f6399f0318f2f78bd0f79e23c5a9ddf300f1d35684edd1e075065f2"
 }
