@@ -2564,9 +2564,9 @@ dependencies = [
 
 [[package]]
 name = "oasgen"
-version = "0.13.0"
+version = "0.14.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "89524b5d0f66f6ef88b856ca12c26bb9118798f558bef43c1b68fabd760b6248"
+checksum = "6819b7c3aba044a2ab09332fca8b61ddec0944bd99926e643b08eb4f658d0b50"
 dependencies = [
  "axum",
  "futures",
@@ -2585,9 +2585,9 @@ dependencies = [
 
 [[package]]
 name = "oasgen-core"
-version = "0.13.0"
+version = "0.14.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e62941d9c5c8ef98d3ef84c9c83ccef7c5547b1ab91900059767add84a735805"
+checksum = "86bee88c680861b159d11fd5f4933e07a43c6bb6d085c76b87de218d5c35e5dc"
 dependencies = [
  "axum",
  "http",
@@ -2601,13 +2601,14 @@ dependencies = [
 
 [[package]]
 name = "oasgen-macro"
-version = "0.13.0"
+version = "0.14.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2fa6e08ffe7093194cb3c8adb37a1252a29b6131e9726ce0663feb3dda2b07c6"
+checksum = "0e904b4e93257157ff27b9fa5045a446651fa0fea4abba23a98c3aa42c3b2fa6"
 dependencies = [
  "oasgen-core",
  "proc-macro2",
  "quote",
+ "serde_derive_internals",
  "structmeta",
  "syn 2.0.37",
 ]
@@ -3472,6 +3473,17 @@ name = "serde_derive"
 version = "1.0.190"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "67c5609f394e5c2bd7fc51efda478004ea80ef42fee983d5c67a65e34f32c0e3"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.37",
+]
+
+[[package]]
+name = "serde_derive_internals"
+version = "0.28.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e578a843d40b4189a4d66bba51d7684f57da5bd7c304c64e14bd63efbef49509"
 dependencies = [
  "proc-macro2",
  "quote",
