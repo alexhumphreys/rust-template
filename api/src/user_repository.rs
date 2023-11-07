@@ -3,7 +3,7 @@ use anyhow::Context;
 use argon2::{password_hash::SaltString, Argon2, PasswordHash, PasswordHasher, PasswordVerifier};
 use axum::async_trait;
 use mockall::automock;
-use secrecy::ExposeSecret;
+use secrecy::{ExposeSecret, Secret};
 use shared::{
     error::Error,
     model::{UserModel, UserTransportModel},
@@ -11,8 +11,7 @@ use shared::{
     tracing::make_otel_db_span,
 };
 use sqlx::Execute;
-use std::collections::hash_map::DefaultHasher;
-use std::hash::{Hash, Hasher};
+use tokio::task;
 use tracing::{self, Instrument};
 use uuid::Uuid;
 
@@ -59,21 +58,19 @@ impl UserRepo for UserRepoImpl {
             .await
             .map_err(|_| Error::Unauthorized)?;
 
-        let expected_password_hash = PasswordHash::new(&user.password_hash)
-            .context("Failed to parse hash in PHC string format.")?;
+        task::spawn_blocking(move || {
+            verify_password_hash(user.password_hash, credentials.password)
+        })
+        .await
+        .context("Failed to spawn blocking task.")
+        .map_err(|_| Error::InternalServerError)??;
 
-        // TODO move to thread
-        Argon2::default()
-            .verify_password(
-                credentials.password.expose_secret().as_bytes(),
-                &expected_password_hash,
-            )
-            .map_err(|_| Error::Unauthorized)?;
-
-        Ok(UserTransportModel {
+        let return_user = UserTransportModel {
             id: user.id,
             name: user.name,
-        })
+        };
+
+        Ok(return_user)
     }
     async fn create_user(&self, credentials: LoginPayload) -> Result<UserTransportModel, Error> {
         let password_hash = generate_hash(&credentials).await;
@@ -107,20 +104,6 @@ impl UserRepo for UserRepoImpl {
     }
 }
 
-#[derive(thiserror::Error, Debug)]
-pub enum AuthError {
-    #[error("Invalid credentials.")]
-    InvalidCredentials(#[source] anyhow::Error),
-    #[error(transparent)]
-    UnexpectedError(#[from] anyhow::Error),
-}
-
-fn calculate_hash<T: Hash>(t: &T) -> u64 {
-    let mut s = DefaultHasher::new();
-    t.hash(&mut s);
-    s.finish()
-}
-
 async fn generate_hash(credentials: &LoginPayload) -> String {
     let salt = SaltString::generate(&mut rand::thread_rng());
     let password_hash = Argon2::default()
@@ -129,4 +112,25 @@ async fn generate_hash(credentials: &LoginPayload) -> String {
         .to_string();
 
     password_hash
+}
+
+#[tracing::instrument(
+    name = "Verify password hash",
+    skip(expected_password_hash, password_candidate)
+)]
+fn verify_password_hash(
+    expected_password_hash: String,
+    password_candidate: Secret<String>,
+) -> Result<(), Error> {
+    let expected_password_hash = PasswordHash::new(&expected_password_hash)
+        .context("Failed to parse hash in PHC string format.")
+        .map_err(|_| Error::InternalServerError)?;
+
+    Argon2::default()
+        .verify_password(
+            password_candidate.expose_secret().as_bytes(),
+            &expected_password_hash,
+        )
+        .context("Invalid password.")
+        .map_err(|_| Error::Unauthorized)
 }

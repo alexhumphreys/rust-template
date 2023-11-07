@@ -20,6 +20,9 @@ pub enum Error {
     #[error("Bad request")]
     BadRequest,
 
+    #[error("Internal server error")]
+    InternalServerError,
+
     #[error("An internal server error occurred")]
     Anyhow(#[from] anyhow::Error),
 
@@ -40,6 +43,7 @@ impl Error {
             Error::Forbidden => StatusCode::FORBIDDEN,
             Error::NotFound => StatusCode::NOT_FOUND,
             Error::BadRequest => StatusCode::BAD_REQUEST,
+            Error::InternalServerError => StatusCode::INTERNAL_SERVER_ERROR,
             Error::Anyhow(e) => {
                 tracing::error!("Anyhow error: {:?}", e);
                 return (
