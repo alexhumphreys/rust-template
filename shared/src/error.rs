@@ -72,11 +72,18 @@ impl Error {
                         "Request returned no results".to_string(),
                     )
                 }
-                //sqlx::Error::Database(e) => {
-                //if e.code().unwrap_or("".to_string()) == "23505" {
-                //return (StatusCode::CONFLICT, "Conflict".to_string());
-                //}
-                //}
+                sqlx::Error::Database(err) => match err.kind() {
+                    sqlx::error::ErrorKind::UniqueViolation => {
+                        return (StatusCode::CONFLICT, format!("Conflict: {}", err.message()));
+                    }
+                    _ => {
+                        tracing::error!("Sqlx database error: {:?}", err);
+                        return (
+                            StatusCode::INTERNAL_SERVER_ERROR,
+                            "Internal server error".to_string(),
+                        );
+                    }
+                },
                 _ => {
                     tracing::error!("Sqlx error: {:?}", e);
                     return (

@@ -41,3 +41,9 @@ pub struct LoginPayload2 {
     pub name: String,
     pub password: String,
 }
+
+#[derive(Deserialize, Debug)]
+pub struct CreateClient {
+    pub name: String,
+    pub user_id: Uuid,
+}

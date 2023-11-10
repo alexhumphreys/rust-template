@@ -1,3 +1,4 @@
+use crate::client_repository::ClientRepo;
 use crate::repositories::Repositories;
 use crate::user_repository::UserRepo;
 use crate::{db, AppState};
@@ -6,7 +7,8 @@ use axum::{
     extract::{Path, Query, State},
     Json,
 };
-use shared::schema::{LoginPayload, PathName};
+use serde::Serialize;
+use shared::schema::{CreateClient, LoginPayload, PathName};
 use shared::{
     error::Error,
     schema::{CreateAccount, FilterOptions, PathId},
@@ -71,11 +73,10 @@ pub async fn put_account(
     Json(payload): Json<CreateAccount>,
 ) -> Result<impl IntoResponse, Error> {
     let account = db::put_account(id.id, payload, State(data)).await?;
-    let json_response = serde_json::json!({
-        "data": account
-    });
-    Ok(Json(json_response))
+    Ok(wrap_response(account))
 }
+
+// User routes
 
 #[tracing::instrument]
 pub async fn create_user(
@@ -83,10 +84,7 @@ pub async fn create_user(
     Json(payload): Json<LoginPayload>,
 ) -> Result<impl IntoResponse, Error> {
     let user = data.repo.user().create_user(payload).await?;
-    let json_response = serde_json::json!({
-        "data": user
-    });
-    Ok(Json(json_response))
+    Ok(wrap_response(user))
 }
 
 #[debug_handler]
@@ -96,10 +94,7 @@ pub async fn validate_user(
     Json(payload): Json<LoginPayload>,
 ) -> Result<impl IntoResponse, Error> {
     let user = data.repo.user().validate_credentials(payload).await?;
-    let json_response = serde_json::json!({
-        "data": user
-    });
-    Ok(Json(json_response))
+    Ok(wrap_response(user))
 }
 
 pub async fn get_user(
@@ -107,8 +102,27 @@ pub async fn get_user(
     State(data): State<Arc<AppState>>,
 ) -> Result<impl IntoResponse, Error> {
     let user = data.repo.user().get_user(id.id).await?;
+    Ok(wrap_response(user))
+}
+
+// Client routes
+
+#[tracing::instrument]
+pub async fn create_client(
+    State(data): State<Arc<AppState>>,
+    Json(payload): Json<CreateClient>,
+) -> Result<impl IntoResponse, Error> {
+    let client = data
+        .repo
+        .client()
+        .create_client(payload.user_id, payload.name)
+        .await?;
+    Ok(wrap_response(client))
+}
+
+fn wrap_response(data: impl Serialize) -> impl IntoResponse {
     let json_response = serde_json::json!({
-        "data": user
+        "data": data
     });
-    Ok(Json(json_response))
+    Json(json_response)
 }
