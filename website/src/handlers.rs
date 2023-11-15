@@ -2,13 +2,18 @@ use crate::auth::{AuthSessionType, NullPool, User};
 
 use askama::Template;
 use axum::{
+    body::{Body, Bytes},
     debug_handler, extract,
+    extract::{Extension, Json, Path, Query, State, TypedHeader},
     http::Method,
+    http::{uri::Uri, Request},
     response::{IntoResponse, Redirect},
 };
 use axum_session_auth::{Auth, Rights};
+use reqwest_middleware::ClientWithMiddleware;
 use serde::Deserialize;
 use shared::{client, schema::LoginPayload2};
+use std::collections::HashMap;
 use uuid::Uuid;
 
 #[derive(Template)]
@@ -97,4 +102,30 @@ pub async fn perm(method: Method, auth: AuthSessionType) -> String {
         "User id {:?} and name {:?} has Permissions needed. Here are the Users permissions: {:?}",
         current_user.id, current_user.username, current_user.permissions
     )
+}
+
+// Proxy Routes
+async fn proxy_handler(
+    State(client): State<ClientWithMiddleware>,
+    method: Method,
+    query: Query<HashMap<String, String>>,
+    body: String,
+    path: Path<String>,
+) -> Result<String, axum::http::StatusCode> {
+    todo!()
+    /*
+    let mut request_builder = client.request(method, &url);
+    if let Some(token) = current_user.token {
+        request_builder = request_builder.header("Authorization", format!("Bearer {}", token));
+    }
+    let response = request_builder
+        .body(req.into_body())
+        .send()
+        .await
+        .map_err(|e| {
+            tracing::error!("TODO REMOVE error {:?}", e);
+            axum::http::StatusCode::INTERNAL_SERVER_ERROR
+        })?;
+    Ok(response)
+    */
 }

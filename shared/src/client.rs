@@ -29,7 +29,7 @@ pub struct DataBody<T> {
     pub data: T,
 }
 
-fn get_client() -> ClientWithMiddleware {
+pub fn get_client() -> ClientWithMiddleware {
     let client = ClientBuilder::new(reqwest::Client::new())
         // Trace HTTP requests. See the tracing crate to make use of these traces.
         .with_init(Extension(OtelName("my-client".into())))

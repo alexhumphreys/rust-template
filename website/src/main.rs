@@ -6,6 +6,7 @@
 mod auth;
 mod handlers;
 mod protected_routes;
+mod proxy_routes;
 mod public_routes;
 
 use axum::Router;
@@ -29,6 +30,8 @@ async fn main() {
         .layer(auth_session_layer)
         // include session storage
         .layer(session_layer)
+        // include proxy after the session auth
+        .merge(proxy_routes::router())
         // include trace context as header into the response
         .layer(OtelInResponseLayer::default())
         //start OpenTelemetry trace on incoming request
