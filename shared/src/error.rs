@@ -4,6 +4,7 @@ use axum::extract::rejection::JsonRejection;
 use axum::http::StatusCode;
 use axum::response::{IntoResponse, Json, Response};
 use reqwest;
+use reqwest_middleware;
 use serde::{Deserialize, Serialize};
 
 #[derive(thiserror::Error, Debug)]
@@ -32,8 +33,14 @@ pub enum Error {
     #[error("A reqwest error occurred")]
     Reqwest(#[from] reqwest::Error),
 
+    #[error("A reqwest_middleware error occurred")]
+    ReqwestMiddelware(#[from] reqwest_middleware::Error),
+
     #[error("An axum error occurred")]
     Axum(#[from] axum::Error),
+
+    #[error("An axum error occurred")]
+    SerdeJson(#[from] serde_json::Error),
 }
 
 impl Error {
@@ -53,6 +60,13 @@ impl Error {
             }
             Error::Reqwest(e) => {
                 tracing::error!("Reqwest error: {:?}", e);
+                return (
+                    StatusCode::INTERNAL_SERVER_ERROR,
+                    "Internal server error".to_string(),
+                );
+            }
+            Error::SerdeJson(e) => {
+                tracing::error!("serde_json error: {:?}", e);
                 return (
                     StatusCode::INTERNAL_SERVER_ERROR,
                     "Internal server error".to_string(),
