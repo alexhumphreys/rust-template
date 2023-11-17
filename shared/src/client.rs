@@ -139,3 +139,32 @@ pub async fn get_user(
         }
     }
 }
+
+#[tracing::instrument]
+pub async fn get_client_by_token(
+    token: String,
+    headers: Option<HeaderMap>,
+) -> Result<model::ClientModel, Error> {
+    let http_client = get_client();
+    let api_base_url = std::env::var("API_BASE_URL").expect("Define API_BASE_URL");
+
+    let body = schema::ValidateToken { token };
+    let req = http_client
+        .get(format!("{}/api/clients/validate_token", api_base_url))
+        .headers(headers.unwrap_or_default())
+        .json::<schema::ValidateToken>(&body);
+
+    tracing::info!("request being sent: {:?}", req);
+    let res = req.send().await?;
+    tracing::info!("response body: {:?}", res);
+    match res.json::<DataBody<model::ClientModel>>().await {
+        Ok(client) => {
+            tracing::debug!("user id: {:?}", client.data.user_id);
+            Ok(client.data)
+        }
+        Err(e) => {
+            tracing::error!("Error fetching client: {:?}", e);
+            Err(Error::Unauthorized)
+        }
+    }
+}

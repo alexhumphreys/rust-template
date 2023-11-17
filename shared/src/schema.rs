@@ -47,3 +47,8 @@ pub struct CreateClient {
     pub name: String,
     pub user_id: Uuid,
 }
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct ValidateToken {
+    pub token: String,
+}

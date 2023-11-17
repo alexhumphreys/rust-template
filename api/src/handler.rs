@@ -8,7 +8,7 @@ use axum::{
     Json,
 };
 use serde::Serialize;
-use shared::schema::{CreateClient, LoginPayload, PathName};
+use shared::schema::{CreateClient, LoginPayload, PathName, ValidateToken};
 use shared::{
     error::Error,
     schema::{CreateAccount, FilterOptions, PathId},
@@ -117,6 +117,15 @@ pub async fn create_client(
         .client()
         .create_client(payload.user_id, payload.name)
         .await?;
+    Ok(wrap_response(client))
+}
+
+#[tracing::instrument]
+pub async fn get_client_by_token(
+    State(data): State<Arc<AppState>>,
+    Json(payload): Json<ValidateToken>,
+) -> Result<impl IntoResponse, Error> {
+    let client = data.repo.client().get_client(payload.token).await?;
     Ok(wrap_response(client))
 }
 

@@ -72,6 +72,10 @@ async fn main() {
         .route("/", get(handler))
         .route("/api/healthz", get(health_checker_handler))
         //.route_layer(middleware::from_fn(auth::auth))
+        .route(
+            "/api/clients/validate_token",
+            get(handler::get_client_by_token),
+        )
         .route("/api/clients", get(handler::get_client_handler))
         .route("/api/clients", post(handler::create_client))
         .route("/api/accounts/:id", put(handler::put_account))

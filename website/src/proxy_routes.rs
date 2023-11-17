@@ -1,8 +1,8 @@
-use crate::{auth, handlers};
 use axum::{
     debug_handler,
     extract::{Path, Query, RawQuery, State},
     http::Method,
+    middleware,
     response::IntoResponse,
     routing::get,
     Json, Router,
@@ -13,7 +13,7 @@ use reqwest::Url;
 use reqwest_middleware::ClientWithMiddleware;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
-use shared::{client, error::Error};
+use shared::{auth, client, error::Error};
 use std::collections::HashMap;
 use std::sync::Arc;
 
@@ -36,9 +36,8 @@ pub fn router() -> Router {
                 .delete(proxy_handler)
                 .put(proxy_handler),
         )
-        .with_state(app_state);
-    // TODO proxy auth
-    // .route_layer(middleware::from_fn(auth::session_auth));
+        .with_state(app_state)
+        .route_layer(middleware::from_fn(auth::token_auth));
     proxy
 }
 
