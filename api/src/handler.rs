@@ -1,10 +1,11 @@
 use crate::client_repository::ClientRepo;
 use crate::repositories::Repositories;
 use crate::user_repository::UserRepo;
-use crate::{db, AppState};
-use axum::{debug_handler, response::IntoResponse};
+use crate::{app_state::AppState, db};
 use axum::{
+    debug_handler,
     extract::{Path, Query, State},
+    response::{Html, IntoResponse},
     Json,
 };
 use serde::Serialize;
@@ -134,4 +135,16 @@ fn wrap_response(data: impl Serialize) -> impl IntoResponse {
         "data": data
     });
     Json(json_response)
+}
+
+pub async fn health_checker_handler() -> impl IntoResponse {
+    let json_response = serde_json::json!({
+        "status": "success",
+    });
+
+    Json(json_response)
+}
+
+pub async fn handler() -> Html<&'static str> {
+    Html("<h1>Hello, World!</h1>")
 }

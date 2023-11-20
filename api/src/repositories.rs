@@ -3,10 +3,7 @@ use crate::{
     db_init,
     user_repository::{UserRepo, UserRepoImpl},
 };
-use axum::extract::Extension;
 use std::sync::Arc;
-
-pub type RepoExt = Extension<Arc<RepoImpls>>;
 
 pub async fn create_repositories() -> RepoImpls {
     let db_pool = Arc::new(db_init::db_connect().await);

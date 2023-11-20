@@ -1,21 +1,13 @@
-use crate::AppState;
-use anyhow::{Context, Result};
-use argon2::password_hash::SaltString;
-use argon2::{Argon2, PasswordHash, PasswordHasher, PasswordVerifier};
+use crate::app_state::AppState;
+use anyhow::Result;
 use axum::extract::{Query, State};
-use axum::http::StatusCode;
-use rand;
-use secrecy::ExposeSecret;
-use shared::schema::LoginPayload;
 use shared::{
     error::Error,
-    model::{AccountModel, ClientModel, UserModel, UserShortModel, UserTransportModel},
+    model::{AccountModel, ClientModel},
     schema,
     tracing::make_otel_db_span,
 };
 use sqlx::Execute;
-use std::collections::hash_map::DefaultHasher;
-use std::hash::{Hash, Hasher};
 use std::sync::Arc;
 use tracing::{self, Instrument};
 use uuid::Uuid;

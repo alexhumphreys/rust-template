@@ -1,18 +1,16 @@
+mod app_state;
 mod client_repository;
 mod db;
 mod db_init;
 mod handler;
 mod repositories;
+mod router;
 #[cfg(test)]
 mod tests;
 mod usecases;
 mod user_repository;
 
-use axum::{
-    response::{Html, IntoResponse},
-    routing::{get, post, put},
-    Json, Router,
-};
+use axum::{Json, Router};
 use axum_otel_metrics::HttpMetricsLayerBuilder;
 use axum_tracing_opentelemetry::middleware::{OtelAxumLayer, OtelInResponseLayer};
 use dotenvy;
@@ -20,15 +18,7 @@ use oasgen::{openapi, OaSchema, Server};
 use serde::{Deserialize, Serialize};
 use shared;
 use shared::telemetry::init_subscribers_custom;
-use sqlx::{Pool, Postgres};
 use std::net::SocketAddr;
-use std::sync::Arc;
-
-#[derive(Debug)]
-pub struct AppState {
-    db: Pool<Postgres>,
-    repo: repositories::RepoImpls,
-}
 
 #[derive(OaSchema, Deserialize)]
 pub struct SendCode {
@@ -51,16 +41,9 @@ async fn send_code(_body: Json<SendCode>) -> Json<SendCodeResponse> {
 async fn main() {
     dotenvy::dotenv().ok();
 
-    //init_tracing_opentelemetry::tracing_subscriber_ext::init_subscribers().ok();
     init_subscribers_custom().ok();
 
     let metrics = HttpMetricsLayerBuilder::new().build();
-
-    let pool = db_init::db_connect().await;
-    let app_state = Arc::new(AppState {
-        db: pool.clone(),
-        repo: repositories::create_repositories().await,
-    });
 
     let server = Server::axum()
         .post("/send-code", send_code)
@@ -69,23 +52,7 @@ async fn main() {
 
     let app = Router::new()
         .merge(metrics.routes()) // TODO other port?
-        .route("/", get(handler))
-        .route("/api/healthz", get(health_checker_handler))
-        //.route_layer(middleware::from_fn(auth::auth))
-        .route(
-            "/api/clients/validate_token",
-            get(handler::get_client_by_token),
-        )
-        .route("/api/clients", get(handler::get_client_handler))
-        .route("/api/clients", post(handler::create_client))
-        .route("/api/accounts/:id", put(handler::put_account))
-        .route("/api/accounts/:id", get(handler::get_account))
-        .route("/api/accounts", get(handler::get_account))
-        .route("/api/accounts", post(handler::create_account))
-        .route("/api/users/login", post(handler::validate_user))
-        .route("/api/users/:id", get(handler::get_user))
-        .route("/api/users", post(handler::create_user))
-        .with_state(app_state)
+        .merge(router::routes().await)
         // include trace context as header into the response
         .layer(OtelInResponseLayer::default())
         //start OpenTelemetry trace on incoming request
@@ -100,16 +67,4 @@ async fn main() {
         .serve(app.into_make_service())
         .await
         .unwrap();
-}
-
-async fn health_checker_handler() -> impl IntoResponse {
-    let json_response = serde_json::json!({
-        "status": "success",
-    });
-
-    Json(json_response)
-}
-
-async fn handler() -> Html<&'static str> {
-    Html("<h1>Hello, World!</h1>")
 }
