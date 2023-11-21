@@ -26,7 +26,7 @@ tracing-opentelemetry = "0.21"
 tracing-opentelemetry-instrumentation-sdk = "0.14.2"
 cargo-audit = "0.18.3"
 serde_json = "1.0.108"
-serde = { version = "1.0.192", features = ["derive"] }
+serde = { version = "1.0.193", features = ["derive"] }
 chrono = { version = "0.4.31", features = ["serde"] }
 dotenv = "0.15.0"
 uuid = { version = "1.6.1", features = ["serde", "v4"] }
