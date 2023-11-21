@@ -30,3 +30,5 @@ reqwest = { version = "0.11.22", features = ["stream", "json"] }
 reqwest-middleware = "0.2.3"
 secrecy = { version = "0.8.0", features = ["serde"] }
 argon2 = "0.5.2"
+dotenvy = "0.15.7"
+axum-otel-metrics = "0.7.0"

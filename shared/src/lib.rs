@@ -3,6 +3,7 @@ pub mod client;
 pub mod error;
 pub mod model;
 pub mod schema;
+pub mod startup;
 pub mod telemetry;
 pub mod tracing;
 
