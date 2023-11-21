@@ -8,34 +8,16 @@ mod handlers;
 mod protected_routes;
 mod proxy_routes;
 mod public_routes;
+mod router;
 
-use axum::Router;
-use axum_tracing_opentelemetry::middleware::{OtelAxumLayer, OtelInResponseLayer};
-use dotenvy;
-use shared::telemetry::init_subscribers_custom;
+use shared::startup::{create_server, server_setup};
 use std::net::SocketAddr;
 
 #[tokio::main]
 async fn main() {
-    dotenvy::dotenv().ok();
+    server_setup();
 
-    init_subscribers_custom().ok();
-
-    let (auth_session_layer, session_layer) = auth::make_auth_session_layer().await;
-
-    let app = Router::new()
-        .merge(protected_routes::router())
-        .merge(public_routes::router())
-        // include authentication session middleware
-        .layer(auth_session_layer)
-        // include session storage
-        .layer(session_layer)
-        // include proxy after the session auth
-        .merge(proxy_routes::router())
-        // include trace context as header into the response
-        .layer(OtelInResponseLayer::default())
-        //start OpenTelemetry trace on incoming request
-        .layer(OtelAxumLayer::default());
+    let app = create_server(vec![router::routes().await]);
 
     // run it
     let addr = SocketAddr::from(([0, 0, 0, 0], 8000));

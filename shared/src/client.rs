@@ -148,10 +148,12 @@ pub async fn get_client_by_token(
     let http_client = get_client();
     let api_base_url = std::env::var("API_BASE_URL").expect("Define API_BASE_URL");
 
+    let trace_headers = get_trace_info();
     let body = schema::ValidateToken { token };
     let req = http_client
         .get(format!("{}/api/clients/validate_token", api_base_url))
         .headers(headers.unwrap_or_default())
+        .headers(trace_headers)
         .json::<schema::ValidateToken>(&body);
 
     tracing::info!("request being sent: {:?}", req);
