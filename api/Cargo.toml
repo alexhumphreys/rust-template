@@ -41,6 +41,8 @@ secrecy = { version = "0.8", features = ["serde"] }
 rand = { vesrion = "0.8.5", features = ["getrandom"]}
 mockall = "0.11.4"
 getrandom = "0.2.10"
+aide = {version = "0.12.0", features = ["axum", "axum-extra", "bytes", "http"]}
+schemars = {version = "0.8.16", features = ["uuid1"]}
 
 [features]
 otlp-over-http = ["opentelemetry-otlp/reqwest-client", "opentelemetry-otlp/reqwest-rustls", "opentelemetry-otlp/http-proto", "opentelemetry-otlp/tls"]

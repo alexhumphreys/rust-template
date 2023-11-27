@@ -1,29 +1,38 @@
 use crate::{app_state::create_app_state, handler};
-use axum::{
-    routing::{get, post, put},
-    Router,
+use aide::{
+    axum::{
+        routing::{get, post, put},
+        ApiRouter, IntoApiResponse,
+    },
+    openapi::{Info, OpenApi},
 };
+use axum::Router;
+use axum::{Extension, Json};
 
-pub async fn routes() -> Router {
+async fn serve_api(Extension(api): Extension<OpenApi>) -> impl IntoApiResponse {
+    Json(api)
+}
+
+pub async fn routes() -> ApiRouter {
     let app_state = create_app_state().await;
 
-    let router = Router::new()
-        .route("/", get(handler::handler))
-        .route("/api/healthz", get(handler::health_checker_handler))
+    let router = ApiRouter::new()
+        .api_route("/", get(handler::handler))
+        .api_route("/api/healthz", get(handler::health_checker_handler))
         //.route_layer(middleware::from_fn(auth::auth))
-        .route(
+        .api_route(
             "/api/clients/validate_token",
             get(handler::get_client_by_token),
         )
-        .route("/api/clients", get(handler::get_client_handler))
-        .route("/api/clients", post(handler::create_client))
-        .route("/api/accounts/:id", put(handler::put_account))
-        .route("/api/accounts/:id", get(handler::get_account))
-        .route("/api/accounts", get(handler::get_account))
-        .route("/api/accounts", post(handler::create_account))
-        .route("/api/users/login", post(handler::validate_user))
-        .route("/api/users/:id", get(handler::get_user))
-        .route("/api/users", post(handler::create_user))
+        .api_route("/api/clients", get(handler::get_client_handler))
+        .api_route("/api/clients", post(handler::create_client))
+        .api_route("/api/accounts/:id", put(handler::put_account))
+        .api_route("/api/accounts/:id", get(handler::get_account))
+        .api_route("/api/accounts", get(handler::get_account))
+        .api_route("/api/accounts", post(handler::create_account))
+        .api_route("/api/users/login", post(handler::validate_user))
+        .api_route("/api/users/:id", get(handler::get_user))
+        .api_route("/api/users", post(handler::create_user))
         .with_state(app_state);
     router
 }

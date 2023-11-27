@@ -2,16 +2,20 @@ use crate::client_repository::ClientRepo;
 use crate::repositories::Repositories;
 use crate::user_repository::UserRepo;
 use crate::{app_state::AppState, db};
+use aide::axum::IntoApiResponse;
 use axum::{
     debug_handler,
     extract::{Path, Query, State},
     response::{Html, IntoResponse},
     Json,
 };
+use schemars::JsonSchema;
+use secrecy::Secret;
 use serde::Serialize;
-use shared::schema::{CreateClient, LoginPayload, PathName, ValidateToken};
+use shared::schema::{CreateClient, LoginPayload, LoginPayload2, PathName, ValidateToken};
 use shared::{
     error::Error,
+    model::DataWrapper,
     schema::{CreateAccount, FilterOptions, PathId},
 };
 use std::sync::Arc;
@@ -20,7 +24,7 @@ use std::sync::Arc;
 pub async fn get_client_handler(
     opts: Option<Query<FilterOptions>>,
     State(data): State<Arc<AppState>>,
-) -> Result<impl IntoResponse, Error> {
+) -> Result<impl IntoApiResponse, Error> {
     let clients = db::get_client_list(opts, State(data)).await?;
     let json_response = serde_json::json!({
         "status": "success",
@@ -34,7 +38,7 @@ pub async fn get_client_handler(
 pub async fn get_account(
     Path(id): Path<PathId>,
     State(data): State<Arc<AppState>>,
-) -> Result<impl IntoResponse, Error> {
+) -> Result<impl IntoApiResponse, Error> {
     let account = db::get_account(id.id, State(data)).await?;
     let json_response = serde_json::json!({
         "data": account
@@ -46,7 +50,7 @@ pub async fn get_account(
 pub async fn search_account(
     Query(name): Query<PathName>,
     State(data): State<Arc<AppState>>,
-) -> Result<impl IntoResponse, Error> {
+) -> Result<impl IntoApiResponse, Error> {
     let account = db::get_account_by_name(name.name, State(data)).await?;
     let json_response = serde_json::json!({
         "data": account
@@ -58,7 +62,7 @@ pub async fn search_account(
 pub async fn create_account(
     State(data): State<Arc<AppState>>,
     Json(payload): Json<CreateAccount>,
-) -> Result<impl IntoResponse, Error> {
+) -> Result<impl IntoApiResponse, Error> {
     let account = db::create_account(payload, State(data)).await?;
     let json_response = serde_json::json!({
         "data": account
@@ -79,12 +83,18 @@ pub async fn put_account(
 
 // User routes
 
+#[debug_handler]
 #[tracing::instrument]
 pub async fn create_user(
     State(data): State<Arc<AppState>>,
-    Json(payload): Json<LoginPayload>,
-) -> Result<impl IntoResponse, Error> {
-    let user = data.repo.user().create_user(payload).await?;
+    Json(payload): Json<LoginPayload2>,
+) -> Result<impl IntoApiResponse, Error> {
+    // TODO remove this hack
+    let hack_payload = LoginPayload {
+        name: payload.name,
+        password: Secret::new(payload.password),
+    };
+    let user = data.repo.user().create_user(hack_payload).await?;
     Ok(wrap_response(user))
 }
 
@@ -92,9 +102,14 @@ pub async fn create_user(
 #[tracing::instrument]
 pub async fn validate_user(
     State(data): State<Arc<AppState>>,
-    Json(payload): Json<LoginPayload>,
-) -> Result<impl IntoResponse, Error> {
-    let user = data.repo.user().validate_credentials(payload).await?;
+    Json(payload): Json<LoginPayload2>,
+) -> Result<impl IntoApiResponse, Error> {
+    // TODO remove this hack
+    let hack_payload = LoginPayload {
+        name: payload.name,
+        password: Secret::new(payload.password),
+    };
+    let user = data.repo.user().validate_credentials(hack_payload).await?;
     Ok(wrap_response(user))
 }
 
@@ -130,11 +145,9 @@ pub async fn get_client_by_token(
     Ok(wrap_response(client))
 }
 
-fn wrap_response(data: impl Serialize) -> impl IntoResponse {
-    let json_response = serde_json::json!({
-        "data": data
-    });
-    Json(json_response)
+fn wrap_response(data: impl Serialize + JsonSchema) -> impl IntoApiResponse {
+    let x = DataWrapper { data };
+    Json(x)
 }
 
 pub async fn health_checker_handler() -> impl IntoResponse {
