@@ -133,7 +133,7 @@ dependencies = [
  "tokio",
  "tower-http",
  "tracing",
- "tracing-opentelemetry 0.21.0",
+ "tracing-opentelemetry 0.22.0",
  "tracing-opentelemetry-instrumentation-sdk",
  "tracing-subscriber",
  "uuid",
