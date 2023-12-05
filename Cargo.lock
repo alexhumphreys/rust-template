@@ -156,7 +156,6 @@ dependencies = [
  "getrandom",
  "init-tracing-opentelemetry",
  "mockall",
- "oasgen",
  "opentelemetry",
  "opentelemetry-otlp",
  "rand",
@@ -2604,7 +2603,6 @@ checksum = "8adf3ddd720272c6ea8bf59463c04e0f93d0bbf7c5439b691bca2987e0270897"
 dependencies = [
  "equivalent",
  "hashbrown 0.14.1",
- "serde",
 ]
 
 [[package]]
@@ -3031,56 +3029,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "oasgen"
-version = "0.13.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "89524b5d0f66f6ef88b856ca12c26bb9118798f558bef43c1b68fabd760b6248"
-dependencies = [
- "axum",
- "futures",
- "http 0.2.9",
- "indexmap 2.0.2",
- "oasgen-core",
- "oasgen-macro",
- "once_cell",
- "openapiv3-extended",
- "regex",
- "serde",
- "serde_json",
- "serde_yaml",
- "tokio",
-]
-
-[[package]]
-name = "oasgen-core"
-version = "0.13.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e62941d9c5c8ef98d3ef84c9c83ccef7c5547b1ab91900059767add84a735805"
-dependencies = [
- "axum",
- "http 0.2.9",
- "indexmap 2.0.2",
- "openapiv3-extended",
- "pin-project-lite",
- "serde_json",
- "structmeta",
- "syn 2.0.37",
-]
-
-[[package]]
-name = "oasgen-macro"
-version = "0.13.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2fa6e08ffe7093194cb3c8adb37a1252a29b6131e9726ce0663feb3dda2b07c6"
-dependencies = [
- "oasgen-core",
- "proc-macro2",
- "quote",
- "structmeta",
- "syn 2.0.37",
-]
-
-[[package]]
 name = "object"
 version = "0.32.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3100,19 +3048,6 @@ name = "opaque-debug"
 version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "624a8340c38c1b80fd549087862da4ba43e08858af025b236e509b6649fc13d5"
-
-[[package]]
-name = "openapiv3-extended"
-version = "3.0.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "82df51e430235c0819e054c3030a974bd7a92cff47455186a9590b87e6292fd9"
-dependencies = [
- "anyhow",
- "http 0.2.9",
- "indexmap 2.0.2",
- "serde",
- "serde_json",
-]
 
 [[package]]
 name = "openssl"
@@ -4087,19 +4022,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "serde_yaml"
-version = "0.9.25"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1a49e178e4452f45cb61d0cd8cebc1b0fafd3e41929e996cef79aa3aca91f574"
-dependencies = [
- "indexmap 2.0.2",
- "itoa",
- "ryu",
- "serde",
- "unsafe-libyaml",
-]
-
-[[package]]
 name = "sha1"
 version = "0.10.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4496,29 +4418,6 @@ name = "strsim"
 version = "0.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "73473c0e59e6d5812c5dfe2a064a6444949f089e20eec9a2e5506596494e4623"
-
-[[package]]
-name = "structmeta"
-version = "0.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "78ad9e09554f0456d67a69c1584c9798ba733a5b50349a6c0d0948710523922d"
-dependencies = [
- "proc-macro2",
- "quote",
- "structmeta-derive",
- "syn 2.0.37",
-]
-
-[[package]]
-name = "structmeta-derive"
-version = "0.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a60bcaff7397072dca0017d1db428e30d5002e00b6847703e2e42005c95fbe00"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn 2.0.37",
-]
 
 [[package]]
 name = "subtle"
@@ -5156,12 +5055,6 @@ dependencies = [
  "crypto-common",
  "subtle",
 ]
-
-[[package]]
-name = "unsafe-libyaml"
-version = "0.2.9"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f28467d3e1d3c6586d8f25fa243f544f5800fec42d97032474e17222c2b75cfa"
 
 [[package]]
 name = "untrusted"
