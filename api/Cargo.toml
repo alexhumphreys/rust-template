@@ -8,7 +8,7 @@ publish = false
 name = "api-server"
 
 [dependencies]
-axum = { version = "0.6.0", features = ["headers", "macros"] }
+axum = { version = "0.7.2", features = ["macros"] }
 tokio = { version = "1.0", features = ["full"] }
 tracing = "0.1.37"
 tracing-subscriber = { version = "0.3.17", features = ["json", "env-filter"] }
@@ -40,6 +40,7 @@ secrecy = { version = "0.8", features = ["serde"] }
 rand = { vesrion = "0.8.5", features = ["getrandom"]}
 mockall = "0.11.4"
 getrandom = "0.2.10"
+axum-extra = { version = "0.9.0", features = ["typed-header"]}
 
 [features]
 otlp-over-http = ["opentelemetry-otlp/reqwest-client", "opentelemetry-otlp/reqwest-rustls", "opentelemetry-otlp/http-proto", "opentelemetry-otlp/tls"]
