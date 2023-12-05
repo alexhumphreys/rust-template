@@ -16,7 +16,7 @@ tower-http = { version = "0.4.4", features = ["trace", "cors", "auth"] }
 dotenvy = "0.15.7"
 axum-otel-metrics = "0.6.0"
 axum-tracing-opentelemetry = "0.14.1"
-init-tracing-opentelemetry = { version = "0.14.1", features = [
+init-tracing-opentelemetry = { version = "0.15.0", features = [
   "otlp",
   "tracing_subscriber_ext",
 ]}
