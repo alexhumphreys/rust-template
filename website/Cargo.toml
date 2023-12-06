@@ -21,7 +21,7 @@ tracing-opentelemetry-instrumentation-sdk = "0.14.1"
 reqwest-tracing = { version = "0.4.6", features = ["opentelemetry_0_20"] }
 opentelemetry = { version = "0.20.0", features = ["trace"] }
 opentelemetry-otlp = "0.13.0"
-tracing-opentelemetry = "0.21.0"
+tracing-opentelemetry = "0.22.0"
 uuid = { version = "1.6.1", features = ["serde", "v4"] }
 axum_session_auth = "0.7.0"
 serde = "1.0.189"
