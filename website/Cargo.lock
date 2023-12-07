@@ -3871,7 +3871,7 @@ dependencies = [
  "tower-layer",
  "tracing",
  "tracing-opentelemetry 0.22.0",
- "tracing-opentelemetry-instrumentation-sdk 0.14.2",
+ "tracing-opentelemetry-instrumentation-sdk 0.15.0",
  "tracing-subscriber",
  "uuid",
 ]

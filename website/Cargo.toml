@@ -17,7 +17,7 @@ shared = { path = "../shared" }
 anyhow = "1.0.75"
 thiserror = "1.0.49"
 reqwest-middleware = "0.2.3"
-tracing-opentelemetry-instrumentation-sdk = "0.14.1"
+tracing-opentelemetry-instrumentation-sdk = "0.15.0"
 reqwest-tracing = { version = "0.4.6", features = ["opentelemetry_0_20"] }
 opentelemetry = { version = "0.21.0", features = ["trace"] }
 opentelemetry-otlp = "0.14.0"
