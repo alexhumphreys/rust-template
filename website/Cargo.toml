@@ -11,7 +11,7 @@ tokio = { version = "1.34", features = ["full"] }
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 reqwest = { version = "0.11.22", features = ["stream"] }
-axum-tracing-opentelemetry = "0.14.1"
+axum-tracing-opentelemetry = "0.15.0"
 dotenvy = "0.15.7"
 shared = { path = "../shared" }
 anyhow = "1.0.75"
