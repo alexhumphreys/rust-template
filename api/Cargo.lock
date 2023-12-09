@@ -122,7 +122,7 @@ dependencies = [
  "init-tracing-opentelemetry 0.15.0",
  "mockall",
  "opentelemetry 0.20.0",
- "opentelemetry-otlp 0.13.0",
+ "opentelemetry-otlp 0.14.0",
  "rand",
  "secrecy",
  "serde",
@@ -2831,7 +2831,6 @@ dependencies = [
  "bytes",
  "http",
  "opentelemetry_api",
- "reqwest",
 ]
 
 [[package]]
@@ -2844,6 +2843,7 @@ dependencies = [
  "bytes",
  "http",
  "opentelemetry 0.21.0",
+ "reqwest",
 ]
 
 [[package]]
@@ -2861,7 +2861,6 @@ dependencies = [
  "opentelemetry_api",
  "opentelemetry_sdk 0.20.0",
  "prost",
- "reqwest",
  "thiserror",
  "tokio",
  "tonic",
@@ -2882,6 +2881,7 @@ dependencies = [
  "opentelemetry-semantic-conventions 0.13.0",
  "opentelemetry_sdk 0.21.1",
  "prost",
+ "reqwest",
  "thiserror",
  "tokio",
  "tonic",
