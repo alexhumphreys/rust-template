@@ -135,7 +135,7 @@ dependencies = [
  "tower-http",
  "tracing",
  "tracing-opentelemetry 0.22.0",
- "tracing-opentelemetry-instrumentation-sdk",
+ "tracing-opentelemetry-instrumentation-sdk 0.15.0",
  "tracing-subscriber",
  "uuid",
 ]
@@ -495,7 +495,7 @@ dependencies = [
  "tower",
  "tracing",
  "tracing-opentelemetry 0.21.0",
- "tracing-opentelemetry-instrumentation-sdk",
+ "tracing-opentelemetry-instrumentation-sdk 0.14.2",
 ]
 
 [[package]]
@@ -3893,7 +3893,7 @@ dependencies = [
  "thiserror",
  "tracing",
  "tracing-opentelemetry 0.21.0",
- "tracing-opentelemetry-instrumentation-sdk",
+ "tracing-opentelemetry-instrumentation-sdk 0.14.2",
  "tracing-subscriber",
  "uuid",
 ]
@@ -4759,15 +4759,27 @@ dependencies = [
 
 [[package]]
 name = "tracing-opentelemetry-instrumentation-sdk"
-version = "0.14.1"
+version = "0.14.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "752ddd669b14a08036a89045e4ac4497ff7ce254e11386647751f36d7c7849ea"
+checksum = "f523eba1b52bb854b804d43a039aafeaee5a623015065adbfef8016825319c15"
 dependencies = [
  "http",
  "opentelemetry-http 0.9.0",
  "opentelemetry_api",
  "tracing",
  "tracing-opentelemetry 0.21.0",
+]
+
+[[package]]
+name = "tracing-opentelemetry-instrumentation-sdk"
+version = "0.15.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2b16403065e0fb78b4708ed0e7245024a5e2eaeeed043dcadba4f32af327a397"
+dependencies = [
+ "opentelemetry 0.21.0",
+ "opentelemetry-http 0.10.0",
+ "tracing",
+ "tracing-opentelemetry 0.22.0",
 ]
 
 [[package]]
