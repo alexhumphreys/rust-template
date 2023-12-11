@@ -38,7 +38,7 @@ axum-macros = "0.3.8"
 argon2 = { version = "0.5.2", features = ["std"] }
 secrecy = { version = "0.8", features = ["serde"] }
 rand = { vesrion = "0.8.5", features = ["getrandom"]}
-mockall = "0.11.4"
+mockall = "0.12.0"
 getrandom = "0.2.11"
 
 [features]
