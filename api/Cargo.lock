@@ -120,7 +120,7 @@ dependencies = [
  "axum",
  "axum-macros",
  "axum-otel-metrics 0.6.0",
- "axum-tracing-opentelemetry",
+ "axum-tracing-opentelemetry 0.15.0",
  "cargo-audit",
  "chrono",
  "dotenv",
@@ -502,6 +502,24 @@ dependencies = [
  "tracing",
  "tracing-opentelemetry 0.21.0",
  "tracing-opentelemetry-instrumentation-sdk 0.14.2",
+]
+
+[[package]]
+name = "axum-tracing-opentelemetry"
+version = "0.15.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "96874d8776ed9834dbb02c234a51f4f439529cd833bc3ccc4bfbbe6d1821d0d2"
+dependencies = [
+ "axum",
+ "futures-core",
+ "futures-util",
+ "http",
+ "opentelemetry 0.21.0",
+ "pin-project-lite",
+ "tower",
+ "tracing",
+ "tracing-opentelemetry 0.22.0",
+ "tracing-opentelemetry-instrumentation-sdk 0.15.0",
 ]
 
 [[package]]
@@ -3861,7 +3879,7 @@ dependencies = [
  "axum",
  "axum-macros",
  "axum-otel-metrics 0.7.0",
- "axum-tracing-opentelemetry",
+ "axum-tracing-opentelemetry 0.14.1",
  "dotenvy",
  "init-tracing-opentelemetry 0.14.1",
  "opentelemetry 0.20.0",
@@ -4758,6 +4776,7 @@ version = "0.15.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2b16403065e0fb78b4708ed0e7245024a5e2eaeeed043dcadba4f32af327a397"
 dependencies = [
+ "http",
  "opentelemetry 0.21.0",
  "opentelemetry-http 0.10.0",
  "tracing",
