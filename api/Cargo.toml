@@ -10,7 +10,7 @@ name = "api-server"
 [dependencies]
 axum = { version = "0.6.0", features = ["headers", "macros"] }
 tokio = { version = "1.33", features = ["full"] }
-tracing = "0.1.37"
+tracing = "0.1.40"
 tracing-subscriber = { version = "0.3.17", features = ["json", "env-filter"] }
 tower-http = { version = "0.4.4", features = ["trace", "cors", "auth"] }
 dotenvy = "0.15.7"
