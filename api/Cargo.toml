@@ -12,7 +12,7 @@ axum = { version = "0.6.0", features = ["headers", "macros"] }
 tokio = { version = "1.35", features = ["full"] }
 tracing = "0.1.40"
 tracing-subscriber = { version = "0.3.18", features = ["json", "env-filter"] }
-tower-http = { version = "0.4.4", features = ["trace", "cors", "auth"] }
+tower-http = { version = "0.5.0", features = ["trace", "cors", "auth"] }
 dotenvy = "0.15.7"
 axum-otel-metrics = "0.6.0"
 axum-tracing-opentelemetry = "0.15.0"
