@@ -26,3 +26,6 @@ uuid = { version = "1.6.1", features = ["serde", "v4"] }
 
 [dev-dependencies]
 cargo-audit = "0.18.3"
+
+[package.metadata.cargo-machete]
+ignored = ["cargo-audit"]

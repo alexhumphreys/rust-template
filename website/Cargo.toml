@@ -21,3 +21,6 @@ tokio = { version = "1.35", features = ["full"] }
 tower-http = {version = "0.4.4", features = ["fs"]}
 tracing = "0.1"
 uuid = { version = "1.6.1", features = ["serde", "v4"] }
+
+[package.metadata.cargo-machete]
+ignored = ["askama_axum"]
