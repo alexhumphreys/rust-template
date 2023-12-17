@@ -11,18 +11,8 @@ name = "api-server"
 anyhow = "1.0.75"
 argon2 = { version = "0.5.2", features = ["std"] }
 axum = { version = "0.6.0", features = ["headers", "macros"] }
-axum-macros = "0.4.0"
-axum-otel-metrics = "0.8.0"
-axum-tracing-opentelemetry = "0.15.0"
-cargo-audit = "0.18.3"
-chrono = { version = "0.4.31", features = ["serde"] }
-dotenv = "0.15.0"
 dotenvy = "0.15.7"
-getrandom = "0.2.11"
-init-tracing-opentelemetry = { version = "0.15.0", features = [ "otlp", "tracing_subscriber_ext", ]}
 mockall = "0.12.0"
-opentelemetry = { version = "0.20.0", features = ["rt-tokio"] }
-opentelemetry-otlp = { version = "0.14.0", optional = true }
 rand = { vesrion = "0.8.5", features = ["getrandom"]}
 secrecy = { version = "0.8", features = ["serde"] }
 serde = { version = "1.0.193", features = ["derive"] }
@@ -31,15 +21,8 @@ shared = { path = "../shared" }
 sqlx = { version = "0.7.3", features = ["runtime-async-std-native-tls", "postgres", "chrono", "uuid"] }
 thiserror = "1.0.51"
 tokio = { version = "1.35", features = ["full"] }
-tower-http = { version = "0.5.0", features = ["trace", "cors", "auth"] }
 tracing = "0.1.40"
-tracing-opentelemetry = "0.22"
-tracing-opentelemetry-instrumentation-sdk = "0.15.0"
-tracing-subscriber = { version = "0.3.18", features = ["json", "env-filter"] }
 uuid = { version = "1.6.1", features = ["serde", "v4"] }
-
-[features]
-otlp-over-http = ["opentelemetry-otlp/reqwest-client", "opentelemetry-otlp/reqwest-rustls", "opentelemetry-otlp/http-proto", "opentelemetry-otlp/tls"]
 
 [dev-dependencies]
 cargo-audit = "0.18.3"
