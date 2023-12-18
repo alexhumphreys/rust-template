@@ -3,7 +3,7 @@
 
 on: [push, pull_request]
 
-name: Check formatting
+name: Cargo audit
 
 jobs:
   fmt:
@@ -20,6 +20,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
-      - run: |
+      - continue-on-error: true
+        run: |
           cd ${{ matrix.services }}
-          cargo fmt --check
+          cargo audit
