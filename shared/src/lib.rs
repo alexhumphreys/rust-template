@@ -2,6 +2,7 @@ pub mod auth;
 pub mod client;
 pub mod error;
 pub mod model;
+pub mod openfga;
 pub mod schema;
 pub mod startup;
 pub mod telemetry;
