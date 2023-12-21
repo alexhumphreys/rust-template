@@ -134,44 +134,50 @@ pub struct RelationshipTuple {
 }
 
 #[derive(Serialize, Deserialize, Debug)]
+pub struct TupleKeys {
+    pub tuple_keys: Vec<RelationshipTuple>,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+#[serde(rename_all = "lowercase")]
 pub enum RelationshipAction {
-    Write(RelationshipTuple),
-    Delete(RelationshipTuple),
+    Writes(TupleKeys),
+    Deletes(TupleKeys),
 }
 #[derive(Serialize, Deserialize, Debug)]
 pub struct WriteRelationshipTupleSchema {
     pub authorization_model_id: String,
-    pub action: RelationshipAction,
+
+    #[serde(flatten)]
+    pub relationship_action: RelationshipAction,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]
 pub struct WriteRelationshipTupleResponse {
-    pub id: String,
-    pub name: String,
-    pub created_at: String,
-    pub updated_at: String,
-    // {"id":"01HJ3FP23AS376NVDBECMZBAPT", "name":"FGA Demo Store", "created_at":"2023-12-20T11:27:27.850720014Z", "updated_at":"2023-12-20T11:27:27.850720014Z"}%
+    // {}%
 }
 
 #[tracing::instrument]
 pub async fn write_relationship_tuple(
-    store: CreateDataStoreSchema,
+    tuples: WriteRelationshipTupleSchema,
     headers: Option<HeaderMap>,
-) -> Result<CreateDataStoreResponse, Error> {
+) -> Result<WriteRelationshipTupleResponse, Error> {
     let http_client = get_client();
     //let fga_base_url = std::env::var("FGA_BASE_URL").expect("Define FGA_BASE_URL");
     let fga_base_url = "http://127.0.0.1:8080";
     let trace_headers = get_trace_info();
 
+    let store_id = "01HJ62X2FEJE0YCK0CGHR288FP";
+
     let req = http_client
-        .post(format!("{}/stores", fga_base_url))
+        .post(format!("{}/stores/{}/write", fga_base_url, store_id))
         .headers(headers.unwrap_or_default())
         .headers(trace_headers)
-        .json::<CreateDataStoreSchema>(&store);
+        .json::<WriteRelationshipTupleSchema>(&tuples);
     tracing::debug!("request being sent: {:?}", req);
     let res = req.send().await?;
     tracing::debug!("response body: {:?}", res);
-    Ok(res.json::<CreateDataStoreResponse>().await?)
+    Ok(res.json::<WriteRelationshipTupleResponse>().await?)
 }
 
 #[cfg(test)]
@@ -180,7 +186,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_create_data_store() {
-        let store_name = "foobar".to_string();
+        let store_name = "foobarx".to_string();
         let res = create_data_store(
             CreateDataStoreSchema {
                 name: store_name.clone(),
@@ -196,13 +202,16 @@ mod tests {
     async fn test_json_serialize() {
         let json = WriteRelationshipTupleSchema {
             authorization_model_id: "123".to_string(),
-            action: RelationshipAction::Write(RelationshipTuple {
-                user: "user:456".to_string(),
-                relation: "reader".to_string(),
-                object: "document:z".to_string(),
+            relationship_action: RelationshipAction::Writes(TupleKeys {
+                tuple_keys: vec![RelationshipTuple {
+                    user: "user:789".to_string(),
+                    relation: "reader".to_string(),
+                    object: "document:z".to_string(),
+                }],
             }),
         };
         println!("{:?}", serde_json::to_string(&json));
-        assert_eq!(true, true);
+        let res = write_relationship_tuple(json, None).await;
+        assert_eq!(res.unwrap(), WriteRelationshipTupleResponse {});
     }
 }
