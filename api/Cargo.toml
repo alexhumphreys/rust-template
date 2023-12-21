@@ -12,7 +12,7 @@ anyhow = "1.0.75"
 argon2 = { version = "0.5.2", features = ["std"] }
 axum = { version = "0.6.0", features = ["headers", "macros"] }
 dotenvy = "0.15.7"
-mockall = "0.12.0"
+mockall = "0.12.1"
 rand = { vesrion = "0.8.5", features = ["getrandom"]}
 secrecy = { version = "0.8", features = ["serde"] }
 serde = { version = "1.0.193", features = ["derive"] }
