@@ -18,6 +18,7 @@ use reqwest_middleware::{ClientBuilder, ClientWithMiddleware, Extension};
 use reqwest_tracing::{OtelName, ReqwestOtelSpanBackend, TracingMiddleware};
 use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
+use serde_json::Value;
 use std::collections::HashMap;
 use tracing::{self, info_span, instrument::WithSubscriber, subscriber, Instrument, Span};
 use tracing_opentelemetry::OpenTelemetrySpanExt;
@@ -159,6 +160,7 @@ pub struct WriteRelationshipTupleResponse {
 
 #[tracing::instrument]
 pub async fn write_relationship_tuple(
+    store_id: String,
     tuples: WriteRelationshipTupleSchema,
     headers: Option<HeaderMap>,
 ) -> Result<WriteRelationshipTupleResponse, Error> {
@@ -166,8 +168,6 @@ pub async fn write_relationship_tuple(
     //let fga_base_url = std::env::var("FGA_BASE_URL").expect("Define FGA_BASE_URL");
     let fga_base_url = "http://127.0.0.1:8080";
     let trace_headers = get_trace_info();
-
-    let store_id = "01HJ62X2FEJE0YCK0CGHR288FP";
 
     let req = http_client
         .post(format!("{}/stores/{}/write", fga_base_url, store_id))
@@ -177,7 +177,42 @@ pub async fn write_relationship_tuple(
     tracing::debug!("request being sent: {:?}", req);
     let res = req.send().await?;
     tracing::debug!("response body: {:?}", res);
+    println!("{:?}", res);
     Ok(res.json::<WriteRelationshipTupleResponse>().await?)
+}
+
+#[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]
+pub struct WriteAuthorizationModelResponse {
+    // {"authorization_model_id":"01HJ8QTTREQ7QJ9P5BCK0RHH5F"}
+    authorization_model_id: String,
+}
+
+#[tracing::instrument]
+pub async fn write_authorization_model(
+    store_id: String,
+    model: String,
+    headers: Option<HeaderMap>,
+) -> Result<WriteAuthorizationModelResponse, Error> {
+    let http_client = get_client();
+    //let fga_base_url = std::env::var("FGA_BASE_URL").expect("Define FGA_BASE_URL");
+    let fga_base_url = "http://127.0.0.1:8080";
+    let trace_headers = get_trace_info();
+
+    let v: Value = serde_json::from_str(&model)?;
+
+    let req = http_client
+        .post(format!(
+            "{}/stores/{}/authorization-models",
+            fga_base_url, store_id
+        ))
+        .headers(headers.unwrap_or_default())
+        .headers(trace_headers)
+        .json::<Value>(&v);
+    tracing::debug!("request being sent: {:?}", req);
+    let res = req.send().await?;
+    tracing::debug!("response body: {:?}", res);
+    println!("{:?}", res);
+    Ok(res.json::<WriteAuthorizationModelResponse>().await?)
 }
 
 #[cfg(test)]
@@ -186,7 +221,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_create_data_store() {
-        let store_name = "foobarx".to_string();
+        let store_name = "foobar2".to_string();
         let res = create_data_store(
             CreateDataStoreSchema {
                 name: store_name.clone(),
@@ -195,7 +230,27 @@ mod tests {
         )
         .await;
 
-        assert_eq!(res.unwrap().name, store_name);
+        let store = res.unwrap();
+        assert_eq!(store.name, store_name);
+
+        let model_string = r#"
+        {"schema_version":"1.1","type_definitions":[{"type":"user"},{"type":"document","relations":{"reader":{"this":{}},"writer":{"this":{}},"owner":{"this":{}}},"metadata":{"relations":{"reader":{"directly_related_user_types":[{"type":"user"}]},"writer":{"directly_related_user_types":[{"type":"user"}]},"owner":{"directly_related_user_types":[{"type":"user"}]}}}}]}
+        "#.to_string();
+        let model = write_authorization_model(store.id.clone(), model_string, None).await;
+        let json = WriteRelationshipTupleSchema {
+            authorization_model_id: model.unwrap().authorization_model_id,
+            relationship_action: RelationshipAction::Writes(TupleKeys {
+                tuple_keys: vec![RelationshipTuple {
+                    user: "user:789".to_string(),
+                    relation: "reader".to_string(),
+                    object: "document:z".to_string(),
+                }],
+            }),
+        };
+        println!("{:?}", serde_json::to_string(&json));
+        let res = write_relationship_tuple(store.id, json, None).await;
+        assert_eq!(res.unwrap(), WriteRelationshipTupleResponse {});
+        assert_eq!(true, false);
     }
 
     #[tokio::test]
@@ -211,7 +266,6 @@ mod tests {
             }),
         };
         println!("{:?}", serde_json::to_string(&json));
-        let res = write_relationship_tuple(json, None).await;
-        assert_eq!(res.unwrap(), WriteRelationshipTupleResponse {});
+        assert_eq!(true, true);
     }
 }
