@@ -7,13 +7,14 @@ use axum::{
     extract::{Extension, Json, Path, Query, State, TypedHeader},
     http::Method,
     http::{uri::Uri, Request},
-    response::{IntoResponse, Redirect},
+    response::{Html, IntoResponse, Redirect},
 };
 use axum_session_auth::{Auth, Rights};
 use reqwest_middleware::ClientWithMiddleware;
 use serde::Deserialize;
 use shared::{client, schema::LoginPayload2};
 use std::collections::HashMap;
+use tera::Tera;
 use uuid::Uuid;
 
 #[derive(Template)]
@@ -23,6 +24,24 @@ struct LoginTemplate {}
 pub async fn login() -> impl IntoResponse {
     let template = LoginTemplate {};
     template
+}
+
+fn tera_include() -> Tera {
+    let tera = Tera::new("tera/**/*").unwrap();
+    tera
+}
+fn common_context() -> tera::Context {
+    let mut context = tera::Context::new();
+    context.insert("title", "axum-tera");
+    context
+}
+pub async fn about_page() -> Html<String> {
+    let tera = tera_include();
+    let mut context = common_context();
+    context.insert("page_title", "About");
+    context.insert("message", "This is About page.");
+    let output = tera.render("about.html", &context);
+    Html(output.unwrap())
 }
 
 #[derive(Template)]

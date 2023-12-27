@@ -8,6 +8,7 @@ pub fn router() -> Router {
         .route("/styles", get(handlers::styles))
         .route("/greet/:name", get(handlers::greet))
         .route("/login", get(handlers::login).post(handlers::handle_login))
+        .route("/about", get(handlers::about_page))
         .route("/perm", get(handlers::perm));
     public
 }
