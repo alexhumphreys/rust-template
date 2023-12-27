@@ -269,7 +269,7 @@ mod tests {
     use crate::openfga::*;
 
     #[tokio::test]
-    async fn test_create_data_store() {
+    async fn test_openfga_create_data_store() {
         let store_name = "foobar2".to_string();
         let res = create_data_store(
             CreateDataStoreSchema {
@@ -308,7 +308,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_json_serialize() {
+    async fn test_openfga_json_serialize() {
         let json = WriteRelationshipTupleSchema {
             authorization_model_id: "123".to_string(),
             relationship_action: RelationshipAction::Writes(TupleKeys {
