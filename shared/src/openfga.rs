@@ -127,7 +127,7 @@ pub async fn create_data_store(
     Ok(res.json::<CreateDataStoreResponse>().await?)
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct RelationshipTuple {
     user: String,
     relation: String,
@@ -215,6 +215,55 @@ pub async fn write_authorization_model(
     Ok(res.json::<WriteAuthorizationModelResponse>().await?)
 }
 
+#[derive(Serialize, Deserialize, Debug)]
+pub struct CheckRequest {
+    // {"allowed":true}
+    authorization_model_id: String,
+    tuple_key: RelationshipTuple,
+}
+
+#[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]
+pub struct CheckResponse {
+    // {"allowed":true}
+    allowed: bool,
+}
+
+#[tracing::instrument]
+pub async fn check(
+    store_id: String,
+    model_id: String,
+    tuple: RelationshipTuple,
+    headers: Option<HeaderMap>,
+) -> Result<CheckResponse, Error> {
+    let http_client = get_client();
+    //let fga_base_url = std::env::var("FGA_BASE_URL").expect("Define FGA_BASE_URL");
+    let fga_base_url = "http://127.0.0.1:8080";
+    let trace_headers = get_trace_info();
+
+    let body = CheckRequest {
+        authorization_model_id: model_id,
+        tuple_key: tuple,
+    };
+    let req = http_client
+        .post(format!("{}/stores/{}/check", fga_base_url, store_id))
+        .headers(headers.unwrap_or_default())
+        .headers(trace_headers)
+        .json::<CheckRequest>(&body);
+    tracing::debug!("request being sent: {:?}", req);
+    let res = req.send().await?;
+    tracing::debug!("response body: {:?}", res);
+    println!("{:?}", res);
+    Ok(res.json::<CheckResponse>().await?)
+}
+
+pub fn make_tuple(user: &str, relation: &str, object: &str) -> RelationshipTuple {
+    RelationshipTuple {
+        user: user.to_string(),
+        relation: relation.to_string(),
+        object: object.to_string(),
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use crate::openfga::*;
@@ -237,20 +286,25 @@ mod tests {
         {"schema_version":"1.1","type_definitions":[{"type":"user"},{"type":"document","relations":{"reader":{"this":{}},"writer":{"this":{}},"owner":{"this":{}}},"metadata":{"relations":{"reader":{"directly_related_user_types":[{"type":"user"}]},"writer":{"directly_related_user_types":[{"type":"user"}]},"owner":{"directly_related_user_types":[{"type":"user"}]}}}}]}
         "#.to_string();
         let model = write_authorization_model(store.id.clone(), model_string, None).await;
+        let authorization_model_id = model.unwrap().authorization_model_id;
+        let tuple = make_tuple("user:789", "reader", "document:z");
         let json = WriteRelationshipTupleSchema {
-            authorization_model_id: model.unwrap().authorization_model_id,
+            authorization_model_id: authorization_model_id.clone(),
             relationship_action: RelationshipAction::Writes(TupleKeys {
-                tuple_keys: vec![RelationshipTuple {
-                    user: "user:789".to_string(),
-                    relation: "reader".to_string(),
-                    object: "document:z".to_string(),
-                }],
+                tuple_keys: vec![tuple.clone()],
             }),
         };
         println!("{:?}", serde_json::to_string(&json));
-        let res = write_relationship_tuple(store.id, json, None).await;
+        let res = write_relationship_tuple(store.id.clone(), json, None).await;
         assert_eq!(res.unwrap(), WriteRelationshipTupleResponse {});
-        assert_eq!(true, false);
+        let allowed = check(
+            store.id.clone(),
+            authorization_model_id.clone(),
+            tuple,
+            None,
+        )
+        .await;
+        assert_eq!(allowed.unwrap().allowed, true);
     }
 
     #[tokio::test]
