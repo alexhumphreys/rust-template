@@ -5,8 +5,8 @@ pub async fn routes() -> Router {
     let (auth_session_layer, session_layer) = auth::make_auth_session_layer().await;
 
     Router::new()
-        .merge(protected_routes::router())
-        .merge(public_routes::router())
+        .merge(protected_routes::router().await)
+        .merge(public_routes::router().await)
         // include authentication session middleware
         .layer(auth_session_layer)
         // include session storage

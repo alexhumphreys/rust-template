@@ -1,4 +1,7 @@
-use crate::auth::{AuthSessionType, NullPool, User};
+use crate::{
+    app_state::AppState,
+    auth::{AuthSessionType, NullPool, User},
+};
 
 use askama::Template;
 use axum::{
@@ -13,7 +16,7 @@ use reqwest_middleware::ClientWithMiddleware;
 use serde::Deserialize;
 use serde_json::json;
 use shared::{client, schema::LoginPayload2};
-use std::collections::HashMap;
+use std::{collections::HashMap, sync::Arc};
 use uuid::Uuid;
 
 #[derive(Template)]
@@ -35,23 +38,13 @@ fluent_templates::static_loader! {
     };
 }
 
-pub async fn about_page() -> Html<String> {
-    let arc = ArcLoader::builder("locales", unic_langid::langid!("en-US"))
-        .shared_resources(Some(&["./locales/core.ftl".into()]))
-        .customize(|bundle| bundle.set_use_isolating(false))
-        .build()
-        .unwrap();
-
-    let mut handlebars = handlebars::Handlebars::new();
-    handlebars.register_helper("fluent", Box::new(FluentLoader::new(arc)));
-    handlebars.register_templates_directory(".hbs", "handlebars/");
-
+pub async fn about_page(State(data): State<Arc<AppState>>) -> Html<String> {
     let data0 = json!({
         "title": "example 0",
         "parent": "base0",
         "lang": "de-DE",
     });
-    Html(handlebars.render("template2", &data0).unwrap())
+    Html(data.handlebars.render("template2", &data0).unwrap())
 }
 
 #[derive(Template)]
