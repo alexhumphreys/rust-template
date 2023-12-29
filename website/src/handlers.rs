@@ -10,9 +10,10 @@ use axum::{
     response::{Html, IntoResponse, Redirect},
 };
 use axum_session_auth::{Auth, Rights};
-use fluent_templates::{static_loader, FluentLoader};
+use fluent_templates::{static_loader, ArcLoader, FluentLoader};
 use reqwest_middleware::ClientWithMiddleware;
 use serde::Deserialize;
+use serde_json::json;
 use shared::{client, schema::LoginPayload2};
 use std::collections::HashMap;
 use tera::Tera;
@@ -54,14 +55,46 @@ fn common_context() -> tera::Context {
     context
 }
 pub async fn about_page() -> Html<String> {
-    let tera = tera_include();
-    let mut context = common_context();
-    context.insert("page_title", "About");
-    context.insert("message", "This is About page.");
-    println!("{:?}", "here 7");
-    let output = tera.render("about.html", &context);
-    println!("{:?}", "here 8");
-    Html(output.unwrap())
+    let mut handlebars = handlebars::Handlebars::new();
+
+    println!("{:?}", "here 1");
+    let arc = ArcLoader::builder("locales", unic_langid::langid!("en-US"))
+        .shared_resources(Some(&["./locales/core.ftl".into()]))
+        .customize(|bundle| bundle.set_use_isolating(false))
+        .build()
+        .unwrap();
+
+    println!("{:?}", "here 2");
+    handlebars.register_helper("fluent", Box::new(FluentLoader::new(arc)));
+    handlebars.register_templates_directory(".hbs", "handlebars/");
+    println!("{:?}", "here 3");
+    let data = serde_json::json!({"lang": "zh-CN"});
+    assert_eq!(
+        "Hello World!",
+        handlebars
+            .render_template(r#"{{fluent "hello-world"}}"#, &data)
+            .unwrap()
+    );
+    assert_eq!(
+        "Hello Alice!",
+        handlebars
+            .render_template(r#"{{fluent "greeting" name="Alice"}}"#, &data)
+            .unwrap()
+    );
+    println!("{:?}", handlebars.get_templates());
+    let x = handlebars.render("template2", &data);
+    println!("{:?}", x.unwrap());
+    let data0 = json!({
+        "title": "example 0",
+        "parent": "base0",
+        "lang": "de-DE",
+    });
+    Html(
+        handlebars
+            //        .render_template(r#"{{fluent "greeting" name="Alice"}}"#, &data)
+            .render("template2", &data0)
+            .unwrap(),
+    )
 }
 
 #[derive(Template)]

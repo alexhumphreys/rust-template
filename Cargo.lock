@@ -1404,6 +1404,7 @@ dependencies = [
  "fluent-syntax",
  "fluent-template-macros",
  "flume 0.10.14",
+ "handlebars",
  "heck",
  "ignore",
  "intl-memoizer",
@@ -2454,6 +2455,7 @@ dependencies = [
  "serde",
  "serde_json",
  "thiserror",
+ "walkdir",
 ]
 
 [[package]]
@@ -5813,6 +5815,7 @@ dependencies = [
  "tokio",
  "tower-http",
  "tracing",
+ "unic-langid",
  "uuid",
 ]
 

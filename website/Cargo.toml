@@ -12,8 +12,8 @@ axum = "0.6.0"
 axum-template = "2.0.0"
 axum_session = "0.7.0"
 axum_session_auth = "0.7.0"
-fluent-templates = { version = "0.8.0", features = ["tera"] }
-handlebars = "4.5.0"
+fluent-templates = { version = "0.8.0", features = ["tera", "handlebars"] }
+handlebars = { version = "4.5.0", features = ["dir_source"] }
 hyper = {version = "1.0.0", features = ["full"]}
 reqwest = { version = "0.11.22", features = ["stream"] }
 reqwest-middleware = "0.2.3"
@@ -24,6 +24,7 @@ tera = "1.19.1"
 tokio = { version = "1.35", features = ["full"] }
 tower-http = {version = "0.4.4", features = ["fs"]}
 tracing = "0.1"
+unic-langid = "0.9.4"
 uuid = { version = "1.6.1", features = ["serde", "v4"] }
 
 [package.metadata.cargo-machete]
