@@ -10,6 +10,7 @@ use axum::{
     response::{Html, IntoResponse, Redirect},
 };
 use axum_session_auth::{Auth, Rights};
+use fluent_templates::{static_loader, FluentLoader};
 use reqwest_middleware::ClientWithMiddleware;
 use serde::Deserialize;
 use shared::{client, schema::LoginPayload2};
@@ -26,13 +27,30 @@ pub async fn login() -> impl IntoResponse {
     template
 }
 
+fluent_templates::static_loader! {
+    // Declare our `StaticLoader` named `LOCALES`.
+    static LOCALES = {
+        // The directory of localisations and fluent resources.
+        locales: "locales",
+        // The language to falback on if something is not present.
+        fallback_language: "en-US",
+    };
+}
+
 fn tera_include() -> Tera {
-    let tera = Tera::new("tera/**/*").unwrap();
+    println!("{:?}", "here 1");
+    let mut tera = Tera::new("tera/**/*").unwrap();
+    println!("{:?}", "here 2");
+    tera.register_function("fluent", FluentLoader::new(&*LOCALES));
+    println!("{:?}", "here 3");
     tera
 }
 fn common_context() -> tera::Context {
+    println!("{:?}", "here 4");
     let mut context = tera::Context::new();
+    println!("{:?}", "here 5");
     context.insert("title", "axum-tera");
+    println!("{:?}", "here 6");
     context
 }
 pub async fn about_page() -> Html<String> {
@@ -40,7 +58,9 @@ pub async fn about_page() -> Html<String> {
     let mut context = common_context();
     context.insert("page_title", "About");
     context.insert("message", "This is About page.");
+    println!("{:?}", "here 7");
     let output = tera.render("about.html", &context);
+    println!("{:?}", "here 8");
     Html(output.unwrap())
 }
 
