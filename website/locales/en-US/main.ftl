@@ -1,6 +1,7 @@
 hello-world = Hello World!
 greeting = Hello { $name }!
         .placeholder = Hello Friend!
+about = About
 simple = simple text
 reference = simple text with a reference: { -something }
 

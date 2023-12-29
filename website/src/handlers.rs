@@ -11,7 +11,6 @@ use axum::{
     response::{Html, IntoResponse, Redirect},
 };
 use axum_session_auth::{Auth, Rights};
-use fluent_templates::{ArcLoader, FluentLoader};
 use reqwest_middleware::ClientWithMiddleware;
 use serde::Deserialize;
 use serde_json::json;
@@ -28,20 +27,8 @@ pub async fn login() -> impl IntoResponse {
     template
 }
 
-fluent_templates::static_loader! {
-    // Declare our `StaticLoader` named `LOCALES`.
-    static LOCALES = {
-        // The directory of localisations and fluent resources.
-        locales: "locales",
-        // The language to falback on if something is not present.
-        fallback_language: "en-US",
-    };
-}
-
 pub async fn about_page(State(data): State<Arc<AppState>>) -> Html<String> {
     let data0 = json!({
-        "title": "example 0",
-        "parent": "base0",
         "lang": "de-DE",
     });
     Html(data.handlebars.render("template2", &data0).unwrap())
