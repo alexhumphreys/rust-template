@@ -2,21 +2,18 @@ use crate::auth::{AuthSessionType, NullPool, User};
 
 use askama::Template;
 use axum::{
-    body::{Body, Bytes},
     debug_handler, extract,
-    extract::{Extension, Json, Path, Query, State, TypedHeader},
+    extract::{Path, Query, State},
     http::Method,
-    http::{uri::Uri, Request},
     response::{Html, IntoResponse, Redirect},
 };
 use axum_session_auth::{Auth, Rights};
-use fluent_templates::{static_loader, ArcLoader, FluentLoader};
+use fluent_templates::{ArcLoader, FluentLoader};
 use reqwest_middleware::ClientWithMiddleware;
 use serde::Deserialize;
 use serde_json::json;
 use shared::{client, schema::LoginPayload2};
 use std::collections::HashMap;
-use tera::Tera;
 use uuid::Uuid;
 
 #[derive(Template)]
@@ -38,63 +35,23 @@ fluent_templates::static_loader! {
     };
 }
 
-fn tera_include() -> Tera {
-    println!("{:?}", "here 1");
-    let mut tera = Tera::new("tera/**/*").unwrap();
-    println!("{:?}", "here 2");
-    tera.register_function("fluent", FluentLoader::new(&*LOCALES));
-    println!("{:?}", "here 3");
-    tera
-}
-fn common_context() -> tera::Context {
-    println!("{:?}", "here 4");
-    let mut context = tera::Context::new();
-    println!("{:?}", "here 5");
-    context.insert("title", "axum-tera");
-    println!("{:?}", "here 6");
-    context
-}
 pub async fn about_page() -> Html<String> {
-    let mut handlebars = handlebars::Handlebars::new();
-
-    println!("{:?}", "here 1");
     let arc = ArcLoader::builder("locales", unic_langid::langid!("en-US"))
         .shared_resources(Some(&["./locales/core.ftl".into()]))
         .customize(|bundle| bundle.set_use_isolating(false))
         .build()
         .unwrap();
 
-    println!("{:?}", "here 2");
+    let mut handlebars = handlebars::Handlebars::new();
     handlebars.register_helper("fluent", Box::new(FluentLoader::new(arc)));
     handlebars.register_templates_directory(".hbs", "handlebars/");
-    println!("{:?}", "here 3");
-    let data = serde_json::json!({"lang": "zh-CN"});
-    assert_eq!(
-        "Hello World!",
-        handlebars
-            .render_template(r#"{{fluent "hello-world"}}"#, &data)
-            .unwrap()
-    );
-    assert_eq!(
-        "Hello Alice!",
-        handlebars
-            .render_template(r#"{{fluent "greeting" name="Alice"}}"#, &data)
-            .unwrap()
-    );
-    println!("{:?}", handlebars.get_templates());
-    let x = handlebars.render("template2", &data);
-    println!("{:?}", x.unwrap());
+
     let data0 = json!({
         "title": "example 0",
         "parent": "base0",
         "lang": "de-DE",
     });
-    Html(
-        handlebars
-            //        .render_template(r#"{{fluent "greeting" name="Alice"}}"#, &data)
-            .render("template2", &data0)
-            .unwrap(),
-    )
+    Html(handlebars.render("template2", &data0).unwrap())
 }
 
 #[derive(Template)]
