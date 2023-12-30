@@ -1,19 +1,21 @@
-use crate::auth::{AuthSessionType, NullPool, User};
+use crate::{
+    app_state::AppState,
+    auth::{AuthSessionType, NullPool, User},
+};
 
 use askama::Template;
 use axum::{
-    body::{Body, Bytes},
     debug_handler, extract,
-    extract::{Extension, Json, Path, Query, State, TypedHeader},
+    extract::{Path, Query, State},
     http::Method,
-    http::{uri::Uri, Request},
-    response::{IntoResponse, Redirect},
+    response::{Html, IntoResponse, Redirect},
 };
 use axum_session_auth::{Auth, Rights};
 use reqwest_middleware::ClientWithMiddleware;
 use serde::Deserialize;
+use serde_json::json;
 use shared::{client, schema::LoginPayload2};
-use std::collections::HashMap;
+use std::{collections::HashMap, sync::Arc};
 use uuid::Uuid;
 
 #[derive(Template)]
@@ -23,6 +25,13 @@ struct LoginTemplate {}
 pub async fn login() -> impl IntoResponse {
     let template = LoginTemplate {};
     template
+}
+
+pub async fn about_page(State(data): State<Arc<AppState>>) -> Html<String> {
+    let data0 = json!({
+        "lang": "de-DE",
+    });
+    Html(data.handlebars.render("template2", &data0).unwrap())
 }
 
 #[derive(Template)]

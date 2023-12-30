@@ -3,6 +3,7 @@
 //! ```not_rust
 //! cargo run -p example-templates
 //! ```
+mod app_state;
 mod auth;
 mod handlers;
 mod protected_routes;
