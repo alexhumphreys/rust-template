@@ -4280,6 +4280,7 @@ dependencies = [
  "serde_json",
  "sqlx",
  "thiserror",
+ "tokio",
  "tracing",
  "tracing-opentelemetry 0.21.0",
  "tracing-opentelemetry-instrumentation-sdk",

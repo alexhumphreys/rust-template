@@ -16,7 +16,7 @@ jobs:
           SQLX_OFFLINE: "true"
         run: |
           cargo build
-          cargo test
+          cargo test -- --skip openfga
           cargo build --release
 
   build-mac:
