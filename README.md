@@ -9,3 +9,4 @@
 - [for auth maybe this library](https://github.com/AscendingCreations/AxumSessionAuth/blob/main/examples/NoPoolType/src/main.rs)
 - [random-favicon-generator](https://toolcool.org/random-favicon-generator)
 - [for mocking db for testing](https://github.com/net3i/rust-axum-sqlx-sample)
+- [auth0-rocket-rust](https://github.com/dontlaugh/auth0-rocket-rust-example)
