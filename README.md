@@ -10,3 +10,7 @@
 - [random-favicon-generator](https://toolcool.org/random-favicon-generator)
 - [for mocking db for testing](https://github.com/net3i/rust-axum-sqlx-sample)
 - [auth0-rocket-rust](https://github.com/dontlaugh/auth0-rocket-rust-example)
+- https://auth0.com/docs/get-started/authentication-and-authorization-flow/authorization-code-flow
+- https://auth0.com/docs/get-started/authentication-and-authorization-flow/add-login-auth-code-flow
+- https://auth0.com/docs/authenticate/login/oidc-conformant-authentication/oidc-adoption-auth-code-flow#id-token-structure
+- https://auth0.com/docs/api/authentication#social
