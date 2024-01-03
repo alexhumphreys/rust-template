@@ -9,7 +9,7 @@ anyhow = "1.0.79"
 askama = { version = "0.12", default-features = false, features = ["with-axum", "mime", "mime_guess"]}
 askama_axum = "0.3.0"
 axum = "0.6.0"
-axum_session = "0.7.0"
+axum_session = "0.8.0"
 axum_session_auth = "0.7.0"
 fluent-templates = { version = "0.8.0", features = ["handlebars"] }
 handlebars = { version = "4.5.0", features = ["dir_source"] }
