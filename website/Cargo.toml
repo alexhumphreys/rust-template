@@ -5,7 +5,7 @@ edition = "2021"
 publish = false
 
 [dependencies]
-anyhow = "1.0.75"
+anyhow = "1.0.79"
 askama = { version = "0.12", default-features = false, features = ["with-axum", "mime", "mime_guess"]}
 askama_axum = "0.3.0"
 axum = "0.6.0"
