@@ -20,7 +20,7 @@ serde = "1.0.189"
 serde_json = "1.0.110"
 shared = { path = "../shared" }
 tokio = { version = "1.35", features = ["full"] }
-tower-http = {version = "0.4.4", features = ["fs"]}
+tower-http = {version = "0.5.0", features = ["fs"]}
 tracing = "0.1"
 unic-langid = "0.9.4"
 uuid = { version = "1.6.1", features = ["serde", "v4"] }
