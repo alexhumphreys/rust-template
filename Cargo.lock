@@ -5560,6 +5560,7 @@ dependencies = [
  "fluent-templates",
  "handlebars",
  "hyper 1.0.0",
+ "rand",
  "reqwest",
  "reqwest-middleware",
  "serde",
