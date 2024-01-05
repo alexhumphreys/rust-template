@@ -11,8 +11,9 @@
 //}
 
 use crate::{app_state, handlers};
-use axum::{debug_handler, response::Redirect, routing::get, Router};
+use axum::{debug_handler, extract::State, response::Redirect, routing::get, Router};
 use shared::error;
+use std::sync::Arc;
 use urlencoding::encode;
 
 /// Helper to create a random string 30 chars long.
@@ -23,9 +24,26 @@ pub fn random_state_string() -> String {
     string
 }
 
+pub fn get_settings() -> AuthSettings {
+    // read settings from environment variables
+    let client_id = std::env::var("AUTH0_CLIENT_ID").expect("AUTH0_CLIENT_ID must be set");
+    let client_secret =
+        std::env::var("AUTH0_CLIENT_SECRET").expect("AUTH0_CLIENT_SECRET must be set");
+    let redirect_uri = std::env::var("AUTH0_REDIRECT_URI").expect("AUTH0_REDIRECT_URI must be set");
+    let auth0_domain =
+        std::env::var("AUTH0_DOMAIN").expect("AUTH0_DOMAIN must be set, e.g. 'example.auth0.com'");
+    AuthSettings {
+        client_id,
+        client_secret,
+        redirect_uri,
+        auth0_domain,
+    }
+}
+
 /// Configuration state for Auth0, including the client secret, which
 /// must be kept private.
-struct AuthSettings {
+#[derive(Debug)]
+pub struct AuthSettings {
     client_id: String,
     client_secret: String,
     redirect_uri: String,
@@ -46,17 +64,21 @@ impl AuthSettings {
 
 pub async fn router() -> Router {
     let auth0 = Router::new()
-        .route("/login", get(handlers::styles))
+        .route("/auth0_login", get(handlers::styles))
         .route("/loggedin", get(handlers::greet))
         .route("/auth0", get(auth0_redirect))
-        .route("/callback", get(handlers::styles));
+        .route("/callback", get(handlers::styles))
+        .with_state(app_state::create_app_state().await);
     auth0
 }
 
 #[debug_handler]
-pub async fn auth0_redirect() -> Result<Redirect, error::Error> {
+pub async fn auth0_redirect(
+    State(data): State<Arc<app_state::AppState>>,
+) -> Result<Redirect, error::Error> {
     let state = random_state_string();
     // cookies.add(Cookie::new("state", state.clone()));
-
-    todo!()
+    let uri = data.auth0.authorize_endpoint_url(&state);
+    println!("{:?}", uri);
+    Ok(Redirect::to(&uri))
 }

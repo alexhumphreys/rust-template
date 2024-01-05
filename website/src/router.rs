@@ -1,4 +1,4 @@
-use crate::{auth, protected_routes, proxy_routes, public_routes};
+use crate::{auth, auth0, protected_routes, proxy_routes, public_routes};
 use axum::Router;
 
 pub async fn routes() -> Router {
@@ -10,6 +10,7 @@ pub async fn routes() -> Router {
         // include authentication session middleware
         .layer(auth_session_layer)
         // include session storage
+        .merge(auth0::router().await)
         .layer(session_layer)
         // include proxy after the session auth
         .merge(proxy_routes::router())
