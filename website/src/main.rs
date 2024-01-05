@@ -5,6 +5,7 @@
 //! ```
 mod app_state;
 mod auth;
+mod auth0;
 mod handlers;
 mod protected_routes;
 mod proxy_routes;
