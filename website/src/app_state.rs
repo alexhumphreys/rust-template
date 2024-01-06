@@ -17,7 +17,7 @@ pub async fn create_app_state() -> Arc<AppState> {
         .unwrap();
 
     let mut handlebars = handlebars::Handlebars::new();
-    let auth0 = auth0::get_settings();
+    let auth0 = auth0::AuthSettings::from_env();
     handlebars.register_helper("fluent", Box::new(FluentLoader::new(arc)));
     handlebars
         .register_templates_directory(".hbs", "handlebars/")
