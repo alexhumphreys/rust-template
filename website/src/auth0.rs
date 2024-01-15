@@ -220,3 +220,58 @@ async fn populate_certs(auth0_domain: &str) -> Result<Auth0CertInfo, error::Erro
         der_cert,
     })
 }
+
+/*
+ * example of how to parse the error responses from auth0
+ *
+use serde::{Deserialize, Serialize};
+
+#[derive(Debug, Deserialize, Serialize)]
+struct CommonFields {
+    common_field1: String,
+    common_field2: i32,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(tag = "type")]
+enum MyEnum {
+    #[serde(rename = "schema1")]
+    Schema1 {
+        #[serde(flatten)]
+        common: CommonFields,
+        schema1_field: String,
+    },
+    #[serde(rename = "schema2")]
+    Schema2 {
+        #[serde(flatten)]
+        common: CommonFields,
+        schema2_field: i64,
+    },
+}
+
+fn main() {
+    let json1 = r#"
+        {
+            "type": "schema1",
+            "common_field1": "value1",
+            "common_field2": 42,
+            "schema1_field": "schema1_value"
+        }
+    "#;
+
+    let json2 = r#"
+        {
+            "type": "schema2",
+            "common_field1": "value2",
+            "common_field2": 84,
+            "schema2_field": 123
+        }
+    "#;
+
+    let result1: Result<MyEnum, _> = serde_json::from_str(json1);
+    let result2: Result<MyEnum, _> = serde_json::from_str(json2);
+
+    println!("{:?}", result1);
+    println!("{:?}", result2);
+}
+*/
