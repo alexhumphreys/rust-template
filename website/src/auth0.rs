@@ -51,7 +51,7 @@ struct TokenResponse {
 
 /// Holds deserialized data from the /oauth/token endpoint. Use the fields
 /// of this struct for validation.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 struct Auth0JWTPayload {
     email: String,
     sub: String,
@@ -65,6 +65,14 @@ struct Auth0CertInfo {
     pem_pk: Vec<u8>,
     der_pk: Vec<u8>,
     der_cert: Vec<u8>,
+}
+
+/// Data to be stored in the session.
+#[derive(Debug, Serialize, Deserialize)]
+struct SessionUserAuthData {
+    sub: String,
+    exp: i64,
+    raw_jwt: String,
 }
 
 /// Helper to create a random string 30 chars long.
@@ -88,10 +96,11 @@ impl AuthSettings {
     /// Given a state param, build a url String that our /auth0 redirect handler can use.
     pub fn authorize_endpoint_url(&self, state: &str) -> String {
         format!(
-            "https://{}/authorize?response_type=code&client_id={}&redirect_uri={}&scope=openid%20email%20profile&state={}",
+            "https://{}/authorize?response_type=code&client_id={}&redirect_uri={}&scope=openid%20email%20profile&audience={}&state={}",
             self.auth0_domain,
             self.client_id,
             encode(&self.redirect_uri),
+            "http://localhost:3000/",
             state,
         )
     }
@@ -130,7 +139,7 @@ impl AuthSettings {
 pub async fn router() -> Router {
     let auth0 = Router::new()
         .route("/auth0_login", get(handlers::styles))
-        .route("/loggedin", get(handlers::styles))
+        .route("/loggedin", get(handlers::loggedin))
         .route("/auth0", get(auth0_redirect))
         .route("/callback", get(callback))
         .with_state(app_state::create_app_state().await);
@@ -151,6 +160,7 @@ pub async fn auth0_redirect(
 #[debug_handler]
 pub async fn callback(
     auth0: Query<CallbackSchema>,
+    session: axum_session::Session<axum_session::SessionNullPool>,
     State(data): State<Arc<app_state::AppState>>,
 ) -> Result<Redirect, error::Error> {
     // TODO check state from cookie
@@ -173,8 +183,20 @@ pub async fn callback(
         &resp.id_token,
         &data.auth0.client_id,
         &data.auth0.auth0_domain,
-    );
+    )?;
     println!("{:?}", payload);
+
+    // TODO get or create user
+    // TODO create session
+    // TODO set session cookie
+    session.set(
+        "user_auth_data",
+        SessionUserAuthData {
+            sub: payload.sub,
+            exp: payload.exp,
+            raw_jwt: resp.id_token,
+        },
+    );
     Ok(Redirect::to("/loggedin"))
 }
 
