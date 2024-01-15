@@ -12,7 +12,7 @@ use axum::{
 };
 use axum_session_auth::{Auth, Rights};
 use reqwest_middleware::ClientWithMiddleware;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use serde_json::json;
 use shared::{client, schema::LoginPayload2};
 use std::{collections::HashMap, sync::Arc};
@@ -59,6 +59,28 @@ struct StylesTemplate {}
 pub async fn styles() -> impl IntoResponse {
     let template = StylesTemplate {};
     template
+}
+
+// TODO hacky copy
+/// Data to be stored in the session.
+#[derive(Debug, Serialize, Deserialize)]
+struct SessionUserAuthData {
+    sub: String,
+    exp: i64,
+    raw_jwt: String,
+}
+
+pub async fn loggedin(
+    session: axum_session::Session<axum_session::SessionNullPool>,
+    State(data): State<Arc<AppState>>,
+) -> Html<String> {
+    let x: Option<SessionUserAuthData> = session.get("user_auth_data");
+    println!("user auth data");
+    println!("{:?}", x);
+    let data0 = json!({
+        "lang": "de-DE",
+    });
+    Html(data.handlebars.render("loggedin", &data0).unwrap())
 }
 
 #[derive(Deserialize, Debug)]
