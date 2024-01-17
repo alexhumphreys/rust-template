@@ -1037,7 +1037,7 @@ dependencies = [
  "fluent-syntax",
  "fluent-template-macros",
  "flume 0.10.14",
- "handlebars",
+ "handlebars 4.5.0",
  "heck",
  "ignore",
  "intl-memoizer",
@@ -1334,6 +1334,20 @@ name = "handlebars"
 version = "4.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "faa67bab9ff362228eb3d00bd024a4965d8231bbb7921167f0cfa66c6626b225"
+dependencies = [
+ "log",
+ "pest",
+ "pest_derive",
+ "serde",
+ "serde_json",
+ "thiserror",
+]
+
+[[package]]
+name = "handlebars"
+version = "5.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ab283476b99e66691dee3f1640fea91487a8d81f50fb5ecc75538f8f8879a1e4"
 dependencies = [
  "log",
  "pest",
@@ -4067,7 +4081,7 @@ dependencies = [
  "axum_session",
  "axum_session_auth",
  "fluent-templates",
- "handlebars",
+ "handlebars 5.1.0",
  "hyper 1.0.1",
  "reqwest",
  "reqwest-middleware",
