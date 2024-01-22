@@ -9,7 +9,7 @@ name = "api-server"
 
 [dependencies]
 anyhow = "1.0.79"
-argon2 = { version = "0.5.2", features = ["std"] }
+argon2 = { version = "0.5.3", features = ["std"] }
 axum = { version = "0.6.0", features = ["headers", "macros"] }
 dotenvy = "0.15.7"
 mockall = "0.12.1"
