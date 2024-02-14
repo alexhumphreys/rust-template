@@ -1,0 +1,40 @@
+services:
+  jaeger:
+    image: jaegertracing/all-in-one:1.49
+    environment:
+      COLLECTOR_ZIPKIN_HOST_PORT: "9411"
+      COLLECTOR_OTLP_ENABLED: "true"
+    ports:
+      - 6831:6831/udp
+      - 6832:6832/udp
+      - 5778:5778
+      - 16686:16686 # UI
+      - 4317:4317
+      - 4318:4318
+      - 14250:14250
+      - 14268:14268
+      - 14269:14269
+      - 9411:9411
+
+  # $ docker run -d -p 5432:5432 -e POSTGRES_USER=loco -e POSTGRES_DB=myapp_development -e POSTGRES_PASSWORD="loco" postgres:15.3-alpine
+  db:
+    image: postgres:15.3-alpine
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_PASSWORD: myapp_development
+      POSTGRES_USER: loco
+      POSTGRES_DB: myapp_development
+
+  # docker run -d -p 8080:8080 -p 8081:8081 -p 3000:3000 openfga/openfga run
+  openfga:
+    image: openfga/openfga
+    ports:
+      - 8080:8080
+      - 8081:8081
+      - 3000:3000
+
+volumes:
+  db-data:
