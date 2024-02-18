@@ -4,5 +4,6 @@ members = [
     "api",
     "website",
     "shared",
+    "loco-tools",
 ]
 resolver = "2"

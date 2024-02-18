@@ -112,8 +112,8 @@ pub async fn create_data_store(
     headers: Option<HeaderMap>,
 ) -> Result<CreateDataStoreResponse, Error> {
     let http_client = get_client();
-    //let fga_base_url = std::env::var("FGA_BASE_URL").expect("Define FGA_BASE_URL");
-    let fga_base_url = "http://127.0.0.1:8080";
+    let fga_base_url = std::env::var("FGA_BASE_URL").expect("Define FGA_BASE_URL");
+    // let fga_base_url = "http://127.0.0.1:8080";
     let trace_headers = get_trace_info();
 
     let req = http_client
