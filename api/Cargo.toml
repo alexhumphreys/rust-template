@@ -8,7 +8,7 @@ publish = false
 name = "api-server"
 
 [dependencies]
-anyhow = "1.0.79"
+anyhow = "1.0.80"
 argon2 = { version = "0.5.3", features = ["std"] }
 axum = { version = "0.6.0", features = ["headers", "macros"] }
 dotenvy = "0.15.7"
