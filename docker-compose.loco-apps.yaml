@@ -1,0 +1,18 @@
+services:
+  myapp:
+    build:
+      context: ./loco/myapp/
+    ports:
+      - "4000:4000"
+    depends_on:
+      - openfga
+      - db
+    # command: ["start"]
+    entrypoint: sleep
+    command: ["1000"]
+    environment:
+      OTEL_SERVICE_NAME: myapp
+      OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: http://jaeger:4317
+      RUST_LOG=info,axum_tracing_opentelemetry: info,otel=debug
+      NODE_PORT: "4000"
+      DATABASE_URL: postgres://loco:loco@db:5432/loco_app

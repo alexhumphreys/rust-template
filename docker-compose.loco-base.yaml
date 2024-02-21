@@ -24,9 +24,9 @@ services:
     ports:
       - "5432:5432"
     environment:
-      POSTGRES_PASSWORD: myapp_development
+      POSTGRES_PASSWORD: loco
       POSTGRES_USER: loco
-      POSTGRES_DB: myapp_development
+      POSTGRES_DB: loco_app
 
   # docker run -d -p 8080:8080 -p 8081:8081 -p 3000:3000 openfga/openfga run
   openfga:

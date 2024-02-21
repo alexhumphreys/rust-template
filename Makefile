@@ -45,3 +45,14 @@ clean:
 	cargo clean
 	cd api/ && cargo clean
 	cd website/ && cargo clean
+
+docker-compose-loco-build:
+	docker compose -f ./docker-compose.loco-base.yaml -f ./docker-compose.loco-apps.yaml build
+
+docker-compose-loco-up:
+	docker compose -f ./docker-compose.loco-base.yaml -f ./docker-compose.loco-apps.yaml up
+
+docker-compose-loco-down:
+	docker compose -f ./docker-compose.loco-base.yaml -f ./docker-compose.loco-apps.yaml down
+
+docker-compose-loco-restart: docker-compose-loco-down docker-compose-loco-build docker-compose-loco-up
