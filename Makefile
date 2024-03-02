@@ -56,3 +56,6 @@ docker-compose-loco-down:
 	docker compose -f ./docker-compose.loco-base.yaml -f ./docker-compose.loco-apps.yaml down
 
 docker-compose-loco-restart: docker-compose-loco-down docker-compose-loco-build docker-compose-loco-up
+
+openfga-transform:
+	fga model transform --input-format fga --file ./openfga/model.fga > ./openfga/model.json
