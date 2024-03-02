@@ -1,7 +1,7 @@
 use async_trait::async_trait;
 use axum::Router as AxumRouter;
 use loco_rs::prelude::*;
-use shared::openfga;
+use shared::openfga::{self, WriteAuthorizationModelResponse};
 
 pub struct OpenFgaInitializer;
 
@@ -19,6 +19,26 @@ async fn create_or_get_store() -> Result<openfga::CreateDataStoreResponse> {
     Ok(store)
 }
 
+async fn read_model_from_file() -> Result<String> {
+    let model_string = std::fs::read_to_string("model.json")?;
+    todo!()
+}
+
+async fn write_model(store_id: String, model: String) -> Result<WriteAuthorizationModelResponse> {
+    let model = openfga::write_authorization_model(store_id, model, None).await;
+    todo!()
+}
+
+async fn initialize_model() -> Result<()> {
+    // create or get store
+    let store = create_or_get_store().await?;
+    // read model from a file
+    let model_string = read_model_from_file().await?;
+
+    let model = write_model(store.id.clone(), model_string).await;
+    todo!()
+}
+
 #[async_trait]
 impl Initializer for OpenFgaInitializer {
     fn name(&self) -> String {
@@ -26,17 +46,25 @@ impl Initializer for OpenFgaInitializer {
     }
 
     async fn after_routes(&self, router: AxumRouter, _ctx: &AppContext) -> Result<AxumRouter> {
-        // create or get store
-        let store = create_or_get_store().await?;
-        // read model from a file
-        let model_string = std::fs::read_to_string("model.pb")?;
-
-        let model = openfga::write_authorization_model(store.id.clone(), model_string, None).await;
+        let res = initialize_model();
 
         // TODO
         // let router = router
         // .layer(openfga_layer);
 
         Ok(router)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::initializers::openfga::*;
+    use shared::openfga::*;
+
+    #[tokio::test]
+    async fn test_initializer() {
+        let res = initialize_model();
+
+        todo!()
     }
 }

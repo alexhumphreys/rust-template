@@ -129,9 +129,9 @@ pub async fn create_data_store(
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct RelationshipTuple {
-    user: String,
-    relation: String,
-    object: String,
+    pub user: String,
+    pub relation: String,
+    pub object: String,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -184,7 +184,7 @@ pub async fn write_relationship_tuple(
 #[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]
 pub struct WriteAuthorizationModelResponse {
     // {"authorization_model_id":"01HJ8QTTREQ7QJ9P5BCK0RHH5F"}
-    authorization_model_id: String,
+    pub authorization_model_id: String,
 }
 
 #[tracing::instrument]
@@ -218,14 +218,14 @@ pub async fn write_authorization_model(
 #[derive(Serialize, Deserialize, Debug)]
 pub struct CheckRequest {
     // {"allowed":true}
-    authorization_model_id: String,
-    tuple_key: RelationshipTuple,
+    pub authorization_model_id: String,
+    pub tuple_key: RelationshipTuple,
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]
 pub struct CheckResponse {
     // {"allowed":true}
-    allowed: bool,
+    pub allowed: bool,
 }
 
 #[tracing::instrument]

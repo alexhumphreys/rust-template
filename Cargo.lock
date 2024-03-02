@@ -3846,6 +3846,7 @@ dependencies = [
  "axum-extra",
  "loco-rs",
  "shared",
+ "tokio",
 ]
 
 [[package]]
