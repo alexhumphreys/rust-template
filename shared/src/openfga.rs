@@ -215,6 +215,31 @@ pub async fn write_authorization_model(
     Ok(res.json::<WriteAuthorizationModelResponse>().await?)
 }
 
+#[tracing::instrument]
+pub async fn get_authorization_models(
+    store_id: String,
+    headers: Option<HeaderMap>,
+) -> Result<(), Error> {
+    let http_client = get_client();
+    //let fga_base_url = std::env::var("FGA_BASE_URL").expect("Define FGA_BASE_URL");
+    let fga_base_url = "http://127.0.0.1:8080";
+    let trace_headers = get_trace_info();
+    let req = http_client
+        .get(format!(
+            "{}/stores/{}/authorization-models",
+            fga_base_url, store_id
+        ))
+        .headers(headers.unwrap_or_default())
+        .headers(trace_headers);
+
+    tracing::debug!("request being sent: {:?}", req);
+    let res = req.send().await?;
+
+    tracing::debug!("response body: {:?}", res);
+    println!("{:?}", res.text().await?);
+    Ok(())
+}
+
 #[derive(Serialize, Deserialize, Debug)]
 pub struct CheckRequest {
     // {"allowed":true}
@@ -305,6 +330,8 @@ mod tests {
         )
         .await;
         assert_eq!(allowed.unwrap().allowed, true);
+        let _res = get_authorization_models(store.id.clone(), None).await;
+        assert_eq!(false, true);
     }
 
     #[tokio::test]
